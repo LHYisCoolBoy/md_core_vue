@@ -93,7 +93,7 @@
           <span v-if="scope.row.tag == 3">推荐</span>
         </template>
       </el-table-column>
-      <el-table-column label="封面类型" align="center">
+      <el-table-column label="素材类型" align="center">
         <template slot-scope="scope">
           <span v-if="scope.row.type == 1">图片</span>
           <span v-if="scope.row.type == 2">视频</span>
@@ -107,9 +107,8 @@
           <video-player style="width: 100%;height: 100%;margin:0 auto;"  class="video-player vjs-custom-skin"
                         ref="videoPlayer"
                         :playsinline="true"
-                        :options="playerOptions(scope.row)"
+                        :options="playerOptions"
                         v-if="scope.row.type == 2"
-
           >
           </video-player>
         </template>
@@ -175,7 +174,7 @@
             <el-option label="推荐" value="3"/>
           </el-select>
         </el-form-item>
-        <el-form-item label="封面类型" prop="type">
+        <el-form-item label="素材类型" prop="type">
           <el-select v-model="form.type" placeholder="请选择封面类型">
             <el-option
               v-for="item in option"
@@ -302,7 +301,7 @@ export default {
         fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
         sources: [{
           type: "video/mp4",
-          src: "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4" //url地址
+          src: "" //url地址
         }],
         poster: "", //你的封面地址
         // width: document.documentElement.clientWidth,
@@ -336,6 +335,12 @@ export default {
         this.mdconfigList = response.rows
         this.total = response.total
         this.loading = false
+        this.mdconfigList.forEach(item=>{
+          if(item.type == 2){
+            this.playerOptions.sources[1] = item.url
+            console.log(this.playerOptions.sources[1],"this.playerOptions.sources[1]")
+          }
+        })
       })
     },
     // 是否启用字典翻译
