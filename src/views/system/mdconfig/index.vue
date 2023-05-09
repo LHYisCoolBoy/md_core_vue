@@ -337,8 +337,12 @@ export default {
         this.loading = false
         this.mdconfigList.forEach(item=>{
           if(item.type == 2){
-            this.playerOptions.sources[1] = item.url
-            console.log(this.playerOptions.sources[1],"this.playerOptions.sources[1]")
+            this. playerOptions.sources = this.mdconfigList.map(items=>{
+              return {
+                type: "video/mp4",
+                src: items.url
+              }
+            })
           }
         })
       })
