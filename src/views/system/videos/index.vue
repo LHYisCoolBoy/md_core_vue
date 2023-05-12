@@ -62,13 +62,19 @@
       <el-table-column label="主键" align="center" prop="id"/>
       <el-table-column label="视频标题" align="center" prop="title"/>
       <el-table-column label="视频预览" align="center" prop="videoUrl">
-        <template slot-scope="scope">
-          <video-player style="width: 100%;height: 100%;margin:0 auto;" class="video-player vjs-custom-skin"
-                        ref="videoPlayer"
-                        :playsinline="true"
-                        :options="playerOptions"
-          >
-          </video-player>
+        <!--        <template slot-scope="scope">
+                  <video-player style="width: 100%;height: 100%;margin:0 auto;" class="video-player vjs-custom-skin"
+                                ref="videoPlayer"
+                                :playsinline="true"
+                                :options="playerOptions"
+                  >
+                  </video-player>
+                </template>-->
+        <template slot-scope="{ row }">
+          <video v-if="row.videoUrl" controls width="100%" height="150px" class="video-js vjs-custom-skin">
+            <source :src="row.videoUrl" type="video/mp4">
+          </video>
+          <div v-else>无视频</div>
         </template>
       </el-table-column>
       <el-table-column label="封面图片" align="center" prop="coverUrl">
@@ -132,6 +138,7 @@ import {listVideos, getVideos, delVideos, addVideos, updateVideos} from "@/api/s
 import ImageUpload from '@/components/ImageUpload';
 import FileUpload from '@/components/FileUpload';
 import item from "@/layout/components/Sidebar/Item.vue";
+import {videojs} from "vue-video-player/src";
 
 export default {
   name: "Videos",
@@ -170,30 +177,30 @@ export default {
       form: {},
       // 表单校验
       rules: {},
-      playerOptions: {
-        playbackRates: [0.5, 1.0, 1.5, 2.0], //播放速度
-        autoplay: false, //如果true,浏览器准备好时开始回放。
-        muted: false, // 默认情况下将会消除任何音频。
-        loop: false, // 导致视频一结束就重新开始。
-        radio: '2',
-        preload: 'auto', // 建议浏览器在<video>加载元素后是否应该开始下载视频数据。auto浏览器选择最佳行为,立即开始加载视频（如果浏览器支持）
-        language: 'zh-CN',
-        aspectRatio: '16:9', // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
-        fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
-        sources: [{
-          type: "video/mp4",
-          src: "" //url地址
-        }],
-        poster: "", //你的封面地址
-        // width: document.documentElement.clientWidth,
-        notSupportedMessage: '此视频暂无法播放，请稍后再试', //允许覆盖Video.js无法播放媒体源时显示的默认信息。
-        controlBar: {
-          timeDivider: true,
-          durationDisplay: true,
-          remainingTimeDisplay: false,
-          fullscreenToggle: true  //全屏按钮
-        }
-      },
+      // playerOptions: {
+      //   playbackRates: [0.5, 1.0, 1.5, 2.0], //播放速度
+      //   autoplay: false, //如果true,浏览器准备好时开始回放。
+      //   muted: false, // 默认情况下将会消除任何音频。
+      //   loop: false, // 导致视频一结束就重新开始。
+      //   radio: '2',
+      //   preload: 'auto', // 建议浏览器在<video>加载元素后是否应该开始下载视频数据。auto浏览器选择最佳行为,立即开始加载视频（如果浏览器支持）
+      //   language: 'zh-CN',
+      //   aspectRatio: '16:9', // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
+      //   fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
+      //   sources: [{
+      //     type: "video/mp4",
+      //     src: "" //url地址
+      //   }],
+      //   poster: "", //你的封面地址
+      //   // width: document.documentElement.clientWidth,
+      //   notSupportedMessage: '此视频暂无法播放，请稍后再试', //允许覆盖Video.js无法播放媒体源时显示的默认信息。
+      //   controlBar: {
+      //     timeDivider: true,
+      //     durationDisplay: true,
+      //     remainingTimeDisplay: false,
+      //     fullscreenToggle: true  //全屏按钮
+      //   }
+      // },
     };
   },
   created() {
@@ -208,25 +215,28 @@ export default {
       this.loading = true;
       listVideos(this.queryParams).then(response => {
         this.videosList = response.rows;
-        this.playerOptions.sources = this.videosList.map(item => {
+        /*this.playerOptions.sources = this.videosList.map(item => {
           return {
             type: "video/mp4",
             src: item.videoUrl
           }
-        })
+        })*/
         this.total = response.total;
         this.loading = false;
       });
-    },
+    }
+    ,
     // 逻辑删除字典翻译
     isDeleteFormat(row, column) {
       return this.selectDictLabel(this.isDeleteOptions, row.isDelete);
-    },
+    }
+    ,
     // 取消按钮
     cancel() {
       this.open = false;
       this.reset();
-    },
+    }
+    ,
     // 表单重置
     reset() {
       this.form = {
@@ -239,29 +249,34 @@ export default {
         isDelete: 0
       };
       this.resetForm("form");
-    },
+    }
+    ,
     /** 搜索按钮操作 */
     handleQuery() {
       this.queryParams.pageNum = 1;
       this.getList();
-    },
+    }
+    ,
     /** 重置按钮操作 */
     resetQuery() {
       this.resetForm("queryForm");
       this.handleQuery();
-    },
+    }
+    ,
     // 多选框选中数据
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.id)
       this.single = selection.length !== 1
       this.multiple = !selection.length
-    },
+    }
+    ,
     /** 新增按钮操作 */
     handleAdd() {
       this.reset();
       this.open = true;
       this.title = "添加视频信息";
-    },
+    }
+    ,
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
@@ -271,7 +286,8 @@ export default {
         this.open = true;
         this.title = "修改视频信息";
       });
-    },
+    }
+    ,
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {
@@ -291,7 +307,8 @@ export default {
           }
         }
       });
-    },
+    }
+    ,
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
@@ -305,7 +322,8 @@ export default {
         this.getList();
         this.msgSuccess("删除成功");
       })
-    },
+    }
+    ,
     /** 导出按钮操作 */
     handleExport() {
       this.download('system/videos/export', {
@@ -313,5 +331,6 @@ export default {
       }, `system_videos.xlsx`)
     }
   }
-};
+}
+;
 </script>

@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="用户名" prop="name">
+      <el-form-item label="用户昵称" prop="score">
         <el-input
-          v-model="queryParams.name"
-          placeholder="请输入用户名"
+          v-model="queryParams.nickName"
+          placeholder="请输入用户昵称"
           clearable
           size="small"
           @keyup.enter.native="handleQuery"
@@ -42,9 +42,11 @@
           plain
           icon="el-icon-plus"
           size="mini"
+          disabled="disabled"
           @click="handleAdd"
           v-hasPermi="['system:users:add']"
-        >新增</el-button>
+        >新增
+        </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -52,10 +54,11 @@
           plain
           icon="el-icon-edit"
           size="mini"
-          :disabled="single"
+          disabled="disabled"
           @click="handleUpdate"
           v-hasPermi="['system:users:edit']"
-        >修改</el-button>
+        >修改
+        </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -66,7 +69,8 @@
           :disabled="multiple"
           @click="handleDelete"
           v-hasPermi="['system:users:remove']"
-        >删除</el-button>
+        >删除
+        </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -76,35 +80,31 @@
           size="mini"
           @click="handleExport"
           v-hasPermi="['system:users:export']"
-        >导出</el-button>
+        >导出
+        </el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="usersList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="用户名" align="center" prop="name" />
-      <el-table-column label="已观看时间" align="center" prop="watchTime" />
-      <el-table-column label="观看次数" align="center" prop="watchCount" />
-      <el-table-column label="答题得分" align="center" prop="score" />
-      <el-table-column label="补考次数" align="center" prop="num" :formatter="numFormat" />
+      <el-table-column type="selection" width="55" align="center"/>
+      <el-table-column label="主键" align="center" prop="id"/>
+      <el-table-column label="用户 ID" align="center" prop="userId"/>
+      <el-table-column label="用户名" align="center" prop="nickName"/>
+      <el-table-column label="已观看时间" align="center" prop="watchTime"/>
+      <el-table-column label="观看次数" align="center" prop="watchCount"/>
+      <el-table-column label="答题得分" align="center" prop="score"/>
+      <el-table-column label="补考次数" align="center" prop="num" :formatter="numFormat"/>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-edit"
-            @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:users:edit']"
-          >修改</el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
             v-hasPermi="['system:users:remove']"
-          >删除</el-button>
+          >删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -116,32 +116,15 @@
       :limit.sync="queryParams.pageSize"
       @pagination="getList"
     />
-
-    <!-- 添加或修改用户信息对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="用户名" prop="name">
-          <el-input v-model="form.name" placeholder="请输入用户名" />
-        </el-form-item>
-        <el-form-item label="用户密码" prop="password">
-          <el-input v-model="form.password" type="password" placeholder="请输入用户密码" />
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listUsers, getUsers, delUsers, addUsers, updateUsers } from "@/api/system/users";
+import {listUsers, getUsers, delUsers, addUsers, updateUsers} from "@/api/system/users";
 
 export default {
   name: "Users",
-  components: {
-  },
+  components: {},
   data() {
     return {
       // 遮罩层
@@ -170,15 +153,14 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        name: null,
+        nickName: null,
         score: null,
         num: null,
       },
       // 表单参数
       form: {},
       // 表单校验
-      rules: {
-      }
+      rules: {}
     };
   },
   created() {
@@ -196,6 +178,7 @@ export default {
       this.loading = true;
       listUsers(this.queryParams).then(response => {
         this.usersList = response.rows;
+        console.log(this.usersList, "aaaaaaa")
         this.total = response.total;
         this.loading = false;
       });
@@ -217,8 +200,7 @@ export default {
     reset() {
       this.form = {
         id: null,
-        name: null,
-        password: null,
+        userId: null,
         watchTime: null,
         watchCount: null,
         score: null,
@@ -242,7 +224,7 @@ export default {
     // 多选框选中数据
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.id)
-      this.single = selection.length!==1
+      this.single = selection.length !== 1
       this.multiple = !selection.length
     },
     /** 新增按钮操作 */
@@ -285,15 +267,15 @@ export default {
     handleDelete(row) {
       const ids = row.id || this.ids;
       this.$confirm('是否确认删除用户信息编号为"' + ids + '"的数据项?', "警告", {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning"
-        }).then(function() {
-          return delUsers(ids);
-        }).then(() => {
-          this.getList();
-          this.msgSuccess("删除成功");
-        })
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      }).then(function () {
+        return delUsers(ids);
+      }).then(() => {
+        this.getList();
+        this.msgSuccess("删除成功");
+      })
     },
     /** 导出按钮操作 */
     handleExport() {
