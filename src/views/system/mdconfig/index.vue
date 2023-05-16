@@ -100,14 +100,14 @@
         </template>
       </el-table-column>
       <!--<el-table-column label="素材预览" align="center" prop="url" /> -->
-      <el-table-column label="素材预览" align="center">
+      <el-table-column label="素材预览" align="center" width="300px">
         <template slot-scope="scope">
 <!--          {{scope.row.type}}-->
           <img :src="scope.row.url" alt="" style="width:100%;height:150px;" v-if="scope.row.type == 1">
-          <video-player style="width: 100%;height: 100%;margin:0 auto;"  class="video-player vjs-custom-skin"
+          <video-player style="width: 100%;height: 100%;margin:0 auto;"  class="video-js vjs-big-play-centered"
                         ref="videoPlayer"
                         :playsinline="true"
-                        :options="playerOptions"
+                        :options="videoUrl(scope.row.url)"
                         v-if="scope.row.type == 2"
           >
           </video-player>
@@ -289,30 +289,6 @@ export default {
         value: 2,
         label: '视频'
       }],
-      playerOptions :	{
-        playbackRates: [0.5, 1.0, 1.5, 2.0], //播放速度
-        autoplay: false, //如果true,浏览器准备好时开始回放。
-        muted: false, // 默认情况下将会消除任何音频。
-        loop: false, // 导致视频一结束就重新开始。
-        radio: '2',
-        preload: 'auto', // 建议浏览器在<video>加载元素后是否应该开始下载视频数据。auto浏览器选择最佳行为,立即开始加载视频（如果浏览器支持）
-        language: 'zh-CN',
-        aspectRatio: '16:9', // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
-        fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
-        sources: [{
-          type: "video/mp4",
-          src: "" //url地址
-        }],
-        poster: "", //你的封面地址
-        // width: document.documentElement.clientWidth,
-        notSupportedMessage: '此视频暂无法播放，请稍后再试', //允许覆盖Video.js无法播放媒体源时显示的默认信息。
-        controlBar: {
-          timeDivider: true,
-          durationDisplay: true,
-          remainingTimeDisplay: false,
-          fullscreenToggle: true  //全屏按钮
-        }
-      },
     }
   },
   created() {
@@ -326,7 +302,30 @@ export default {
   },
   methods: {
     videoUrl(url){
-      console.log(url,"irwqeqwyeuyqe")
+      return {
+        playbackRates: [0.5, 1.0, 1.5, 2.0], //播放速度
+        autoplay: false, //如果true,浏览器准备好时开始回放。
+        muted: false, // 默认情况下将会消除任何音频。
+        loop: false, // 导致视频一结束就重新开始。
+        radio: '2',
+        preload: 'auto', // 建议浏览器在<video>加载元素后是否应该开始下载视频数据。auto浏览器选择最佳行为,立即开始加载视频（如果浏览器支持）
+        language: 'zh-CN',
+        aspectRatio: '16:9', // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
+        fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
+        sources: [{
+            type: "video/mp4",
+            src: url //url地址
+        }],
+        poster: "", //你的封面地址
+        // width: document.documentElement.clientWidth,
+        notSupportedMessage: '此视频暂无法播放，请稍后再试', //允许覆盖Video.js无法播放媒体源时显示的默认信息。
+        controlBar: {
+            timeDivider: true,
+            durationDisplay: true,
+            remainingTimeDisplay: false,
+            fullscreenToggle: true  //全屏按钮
+        }
+      }
     },
     /** 查询推荐配置列表 */
     getList() {
@@ -335,16 +334,6 @@ export default {
         this.mdconfigList = response.rows
         this.total = response.total
         this.loading = false
-        this.mdconfigList.forEach(item=>{
-          if(item.type == 2){
-            this. playerOptions.sources = this.mdconfigList.map(items=>{
-              return {
-                type: "video/mp4",
-                src: items.url
-              }
-            })
-          }
-        })
       })
     },
     // 是否启用字典翻译
