@@ -1,11 +1,11 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
-      <!-- <el-form-item label="标签" prop="tag">
+      <el-form-item label="标签" prop="tag">
         <el-select v-model="queryParams.tag" placeholder="请选择标签" clearable size="small">
           <el-option label="请选择字典生成" value=""/>
         </el-select>
-      </el-form-item> -->
+      </el-form-item>
       <el-form-item label="封面类型" prop="type">
         <el-select v-model="queryParams.type" placeholder="请选择封面类型" clearable size="small">
           <el-option label="请选择字典生成" value=""/>
