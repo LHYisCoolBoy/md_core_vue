@@ -42,7 +42,6 @@
           plain
           icon="el-icon-plus"
           size="mini"
-          disabled="disabled"
           @click="handleAdd"
           v-hasPermi="['system:users:add']"
         >新增
@@ -116,15 +115,30 @@
       :limit.sync="queryParams.pageSize"
       @pagination="getList"
     />
+
+    <!-- 添加或修改用户信息对话框 -->
+    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="用户 ID" prop="userId">
+          <el-input v-model="form.userId" placeholder="请输入用户 ID"/>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button @click="cancel">取 消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import {listUsers, getUsers, delUsers, addUsers, updateUsers} from "@/api/system/users";
+import FileUpload from "@/components/FileUpload/index.vue";
+import ImageUpload from "@/components/ImageUpload/index.vue";
 
 export default {
   name: "Users",
-  components: {},
+  components: {ImageUpload, FileUpload},
   data() {
     return {
       // 遮罩层
