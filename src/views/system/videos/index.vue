@@ -62,19 +62,17 @@
       <el-table-column label="主键" align="center" prop="id"/>
       <el-table-column label="视频标题" align="center" prop="title"/>
       <el-table-column label="视频预览" align="center" prop="videoUrl">
-        <!--        <template slot-scope="scope">
-                  <video-player style="width: 100%;height: 100%;margin:0 auto;" class="video-player vjs-custom-skin"
-                                ref="videoPlayer"
-                                :playsinline="true"
-                                :options="playerOptions"
-                  >
-                  </video-player>
-                </template>-->
-        <template slot-scope="{ row }">
-          <video v-if="row.videoUrl" controls width="100%" height="150px" class="video-js vjs-custom-skin">
-            <source :src="row.videoUrl" type="video/mp4">
-          </video>
-          <div v-else>无视频</div>
+        <template slot-scope="scope">
+          <video-player style="width: 100%;height: 100%;margin:0 auto;" class="video-js vjs-big-play-centered"
+                        ref="videoPlayer"
+                        :playsinline="true"
+                        :options="playerOptions[scope.$index]"
+                        v-if="scope.row.videoUrl != null"
+          >
+          </video-player>
+          <div v-if="scope.row.videoUrl == null">
+            无视频
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="封面图片" align="center" prop="coverUrl">
@@ -177,30 +175,7 @@ export default {
       form: {},
       // 表单校验
       rules: {},
-      // playerOptions: {
-      //   playbackRates: [0.5, 1.0, 1.5, 2.0], //播放速度
-      //   autoplay: false, //如果true,浏览器准备好时开始回放。
-      //   muted: false, // 默认情况下将会消除任何音频。
-      //   loop: false, // 导致视频一结束就重新开始。
-      //   radio: '2',
-      //   preload: 'auto', // 建议浏览器在<video>加载元素后是否应该开始下载视频数据。auto浏览器选择最佳行为,立即开始加载视频（如果浏览器支持）
-      //   language: 'zh-CN',
-      //   aspectRatio: '16:9', // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
-      //   fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
-      //   sources: [{
-      //     type: "video/mp4",
-      //     src: "" //url地址
-      //   }],
-      //   poster: "", //你的封面地址
-      //   // width: document.documentElement.clientWidth,
-      //   notSupportedMessage: '此视频暂无法播放，请稍后再试', //允许覆盖Video.js无法播放媒体源时显示的默认信息。
-      //   controlBar: {
-      //     timeDivider: true,
-      //     durationDisplay: true,
-      //     remainingTimeDisplay: false,
-      //     fullscreenToggle: true  //全屏按钮
-      //   }
-      // },
+      playerOptions: {},
     };
   },
   created() {
@@ -215,12 +190,32 @@ export default {
       this.loading = true;
       listVideos(this.queryParams).then(response => {
         this.videosList = response.rows;
-        /*this.playerOptions.sources = this.videosList.map(item => {
+        this.playerOptions = this.videosList.map(item => {
           return {
-            type: "video/mp4",
-            src: item.videoUrl
+            playbackRates: [0.5, 1.0, 1.5, 2.0], //播放速度
+            autoplay: false, //如果true,浏览器准备好时开始回放。
+            muted: false, // 默认情况下将会消除任何音频。
+            loop: false, // 导致视频一结束就重新开始。
+            radio: '2',
+            preload: 'auto', // 建议浏览器在<video>加载元素后是否应该开始下载视频数据。auto浏览器选择最佳行为,立即开始加载视频（如果浏览器支持）
+            language: 'zh-CN',
+            aspectRatio: '16:9', // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
+            fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
+            sources: [{
+              type: "video/mp4",
+              src: item.videoUrl,
+            }],
+            poster: "", //你的封面地址
+            // width: document.documentElement.clientWidth,
+            notSupportedMessage: '此视频暂无法播放，请稍后再试', //允许覆盖Video.js无法播放媒体源时显示的默认信息。
+            controlBar: {
+              timeDivider: true,
+              durationDisplay: true,
+              remainingTimeDisplay: false,
+              fullscreenToggle: true  //全屏按钮
+            }
           }
-        })*/
+        })
         this.total = response.total;
         this.loading = false;
       });
