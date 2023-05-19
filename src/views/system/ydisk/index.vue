@@ -10,15 +10,6 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="文件地址" prop="url">
-        <el-input
-          v-model="queryParams.url"
-          placeholder="请输入文件地址"
-          clearable
-          size="small"
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
       <el-form-item label="上传时间
 " prop="time">
         <el-date-picker clearable size="small"
@@ -29,7 +20,7 @@
 ">
         </el-date-picker>
       </el-form-item>
-      <el-form-item label="部门id" prop="deptId">
+      <el-form-item label="部门" prop="deptId">
         <el-input
           v-model="queryParams.deptId"
           placeholder="请输入部门id"
@@ -38,10 +29,10 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="用户id" prop="userId">
+      <el-form-item label="用户" prop="userId">
         <el-input
           v-model="queryParams.userId"
-          placeholder="请输入用户id"
+          placeholder="请输入用户"
           clearable
           size="small"
           @keyup.enter.native="handleQuery"
@@ -131,7 +122,7 @@
         </template>
       </el-table-column>
     </el-table>
-    
+
     <pagination
       v-show="total>0"
       :total="total"
@@ -146,8 +137,8 @@
         <el-form-item label="项目名" prop="name">
           <el-input v-model="form.name" placeholder="请输入项目名" />
         </el-form-item>
-        <el-form-item label="文件地址" prop="url">
-          <el-input v-model="form.url" placeholder="请输入文件地址" />
+        <el-form-item label="文件地址">
+          <fileUpload v-model="form.url"/>
         </el-form-item>
         <el-form-item label="上传时间
 " prop="time">
@@ -176,10 +167,12 @@
 
 <script>
 import { listYdisk, getYdisk, delYdisk, addYdisk, updateYdisk } from "@/api/system/ydisk";
+import FileUpload from '@/components/FileUpload';
 
 export default {
   name: "Ydisk",
   components: {
+    FileUpload,
   },
   data() {
     return {
@@ -206,7 +199,6 @@ export default {
         pageNum: 1,
         pageSize: 10,
         name: null,
-        url: null,
         time: null,
         deptId: null,
         userId: null
