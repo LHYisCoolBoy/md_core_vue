@@ -54,7 +54,7 @@ export default {
     fileType: {
       type: Array,
       // <!--"doc", "xls", "ppt", "txt", "pdf",-->
-      default: () => ["mp4","jpg","jpeg","png","gif"],
+      default: () => ["avi","rmvb","mp4","jpg","jpeg","png","gif"],
     },
     // 是否显示提示
     isShowTip: {
