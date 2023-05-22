@@ -168,11 +168,12 @@
             :on-success="handleUploadSuccess"
             style="border: 1px solid #DCDFE6;border-radius: 4px;padding: 10px;"
           >
-            <video v-if="videoSrc !='' && progressFlag == false" :src="videoSrc" class="avatar" controls="controls">
+            <video v-if="videoSrc !=='' && progressFlag === false" :src="videoSrc" class="avatar" controls="controls">
               您的浏览器不支持视频播放
             </video>
-            <i v-else-if="videoSrc =='' && progressFlag == false" class="el-icon-plus avatar-uploader-icon"/>
-            <el-progress v-if="progressFlag == true" type="circle" :percentage="loadProgress" style="margin-top:30px;"/>
+            <i v-else-if="videoSrc ==='' && progressFlag === false" class="el-icon-plus avatar-uploader-icon"/>
+            <el-progress v-if="progressFlag === true" type="circle" :percentage="loadProgress"
+                         style="margin-top:30px;"/>
             <!-- <div slot="tip" class="el-upload__tip" style="color: #E6A23C;"> 请保证视频格式正确，且不超过10M。</div> -->
           </el-upload>
           <span v-if="videoAddress">{{ videoAddress }}</span>

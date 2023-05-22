@@ -190,8 +190,26 @@
             已支付
           </el-radio>
         </el-form-item>
-        <el-form-item label="封面图片">
-<!--          <imageUpload v-model="form."/>-->
+        <el-form-item label="图片" prop="imgUrl">
+          <imageUpload v-model="form.imgUrl"/>
+        </el-form-item>
+        <el-form-item label="上传视频">
+          <el-upload
+            class="avatar-uploader el-upload--text"
+            :action="uploadFileUrl"
+            :headers="headers"
+            :on-success="handleUploadSuccess"
+            style="border: 1px solid #DCDFE6;border-radius: 4px;padding: 10px;"
+          >
+            <video v-if="videoSrc !=='' && progressFlag === false" :src="videoSrc" class="avatar" controls="controls">
+              您的浏览器不支持视频播放
+            </video>
+            <i v-else-if="videoSrc ==='' && progressFlag === false" class="el-icon-plus avatar-uploader-icon"/>
+            <el-progress v-if="progressFlag === true" type="circle" :percentage="loadProgress"
+                         style="margin-top:30px;"/>
+            <!-- <div slot="tip" class="el-upload__tip" style="color: #E6A23C;"> 请保证视频格式正确，且不超过10M。</div> -->
+          </el-upload>
+          <span v-if="videoAddress">{{ videoAddress }}</span>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -206,6 +224,7 @@ import {listCompleted, getCompleted, delCompleted, addCompleted, updateCompleted
 import {listTask} from "@/api/system/task";
 import {parseTime} from "../../../utils/jeethink";
 import ImageUpload from "@/components/ImageUpload/index.vue";
+import {getToken} from "@/utils/auth";
 
 export default {
   name: "Completed",
@@ -236,6 +255,7 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
+        id: null,
         name: null,
         isPayment: 1,
         userId: null, // 获取当前登录的用户 ID
@@ -244,7 +264,15 @@ export default {
       form: {},
       // 表单校验
       rules: {},
-      playerOptions: {}
+      //上传视频文件
+      progressFlag: false, // 关闭进度条
+      loadProgress: 0, // 进度条初始值
+      videoSrc: '',
+      uploadFileUrl: 'http://core.mdgp.cn/api/mdcms-file/upload', // 上传的图片服务器地址
+      headers: {
+        Authorization: "Bearer " + getToken(),
+      },
+      videoAddress: '',
     };
   },
   created() {
@@ -255,37 +283,18 @@ export default {
   },
   methods: {
     parseTime,
+    // 上传成功回调
+    handleUploadSuccess(res, file) {
+      console.log(res, "上传成功回调")
+      this.$message.success("上传成功");
+      this.$emit("input", res.data.videoUrl);
+      this.videoAddress = res.data.videoUrl
+    },
     /** 查询已办列表 */
     getList() {
       this.loading = true;
       listCompleted(this.queryParams).then(response => {
         this.completedList = response.rows;
-        /*this.playerOptions = this.completedList.map(item => {
-          return {
-            playbackRates: [0.5, 1.0, 1.5, 2.0], //播放速度
-            autoplay: false, //如果true,浏览器准备好时开始回放。
-            muted: false, // 默认情况下将会消除任何音频。
-            loop: false, // 导致视频一结束就重新开始。
-            radio: '2',
-            preload: 'auto', // 建议浏览器在<video>加载元素后是否应该开始下载视频数据。auto浏览器选择最佳行为,立即开始加载视频（如果浏览器支持）
-            language: 'zh-CN',
-            aspectRatio: '16:9', // 将播放器置于流畅模式，并在计算播放器的动态大小时使用该值。值应该代表一个比例 - 用冒号分隔的两个数字（例如"16:9"或"4:3"）
-            fluid: true, // 当true时，Video.js player将拥有流体大小。换句话说，它将按比例缩放以适应其容器。
-            sources: [{
-              type: "video/mp4",
-              src: item.videoUrl,
-            }],
-            poster: "", //你的封面地址
-            // width: document.documentElement.clientWidth,
-            notSupportedMessage: '此视频暂无法播放，请稍后再试', //允许覆盖Video.js无法播放媒体源时显示的默认信息。
-            controlBar: {
-              timeDivider: true,
-              durationDisplay: true,
-              remainingTimeDisplay: false,
-              fullscreenToggle: true  //全屏按钮
-            }
-          }
-        })*/
         this.total = response.total;
         this.loading = false;
       });
@@ -319,7 +328,10 @@ export default {
         expenseAmount: null,
         isPayment: null,
         createTime: null,
-        updateTime: null
+        updateTime: null,
+        fileUrl: null,
+        imgUrl: null,
+        videoUrl: null,
       };
       this.resetForm("form");
     },
