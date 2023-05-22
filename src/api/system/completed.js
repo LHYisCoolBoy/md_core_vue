@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询已办列表
 export function listCompleted(query) {
   return request({
-    url: '/system/task/list',
+    url: '/system/completed/list',
     method: 'get',
     params: query
   })

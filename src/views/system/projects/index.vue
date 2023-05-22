@@ -3,17 +3,22 @@
     <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="用户" prop="userId">
         <el-select v-model="queryParams.userId" placeholder="请选择用户" clearable size="small">
-          <el-option label="请选择字典生成" value=""/>
-          <!--          <el-option
-                     v-for="dict in completedList"
-                     :label="dict.userName"
-                     :value="dict.userId"
-                   />-->
+          <el-option
+            v-for="(user,index) in uniqueProjectsByUserList"
+            :key="index"
+            :label="user.nickName"
+            :value="user.userId"
+          />
         </el-select>
       </el-form-item>
       <el-form-item label="部门" prop="deptId">
         <el-select v-model="queryParams.deptId" placeholder="请选择部门" clearable size="small">
-          <el-option label="请选择字典生成" value=""/>
+          <el-option
+            v-for="(dept,index) in uniqueProjectsByDeptList"
+            :key="index"
+            :label="dept.deptName"
+            :value="dept.deptId"
+          />
         </el-select>
       </el-form-item>
       <el-form-item label="项目名称" prop="name">
@@ -94,11 +99,11 @@
     <el-table v-loading="loading" :data="projectsList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center"/>
       <el-table-column label="主键" align="center" prop="id"/>
-      <el-table-column label="用户 ID" align="center" prop="userId"/>
-      <el-table-column label="部门 ID" align="center" prop="deptId"/>
+      <el-table-column label="用户" align="center" prop="nickName"/>
+      <el-table-column label="部门" align="center" prop="deptName"/>
       <el-table-column label="项目名称" align="center" prop="name"/>
-      <el-table-column label="协同人 ID" align="center" prop="collaboratorId"/>
-      <el-table-column label="协同人部门 ID" align="center" prop="collaboratorDeptId"/>
+      <el-table-column label="协同人" align="center" prop="collaboratorName"/>
+      <el-table-column label="协同人部门" align="center" prop="collaboratorDeptName"/>
       <el-table-column label="紧急程度" align="center" prop="urgency"/>
       <el-table-column label="项目描述" align="center" prop="description"/>
       <el-table-column label="项目的开始时间" align="center" prop="startTime" width="180">
@@ -147,14 +152,24 @@
     <!-- 添加或修改项目对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="用户 ID" prop="userId">
-          <el-select v-model="form.userId" placeholder="请选择用户 ID">
-            <el-option label="请选择字典生成" value=""/>
+        <el-form-item label="部门" prop="deptId">
+          <el-select v-model="form.deptId" placeholder="请选择部门" @click="updateUserList">
+            <el-option
+              v-for="(dept,index) in uniqueProjectsByDeptList"
+              :key="index"
+              :label="dept.deptName"
+              :value="dept.deptId"
+            />
           </el-select>
         </el-form-item>
-        <el-form-item label="部门 ID" prop="deptId">
-          <el-select v-model="form.deptId" placeholder="请选择部门 ID">
-            <el-option label="请选择字典生成" value=""/>
+        <el-form-item label="用户" prop="userId">
+          <el-select v-model="form.userId" placeholder="请选择用户">
+            <el-option
+              v-for="(user,index) in filteredUserOptions"
+              :key="index"
+              :label="user.nickName"
+              :value="user.userId"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="项目名称" prop="name">
@@ -216,9 +231,48 @@
 
 <script>
 import {listProjects, getProjects, delProjects, addProjects, updateProjects} from "@/api/system/projects";
+import {getInfo} from "@/api/login";
+import {listTask} from "@/api/system/task";
+import dict from "../dict/index.vue";
 
 export default {
   name: "Projects",
+  computed: {
+    dict() {
+      return dict
+    },
+    // 部门信息去重
+    uniqueProjectsByDeptList() {
+      const set = new Set();
+      return this.projectsList.filter(dict => {
+        if (set.has(dict.deptId)) {
+          return false;
+        } else {
+          set.add(dict.deptId);
+          return true;
+        }
+      });
+    },
+    // 用户信息去重
+    uniqueProjectsByUserList() {
+      const set = new Set();
+      return this.projectsList.filter(dict => {
+        if (set.has(dict.userId)) {
+          return false;
+        } else {
+          set.add(dict.userId);
+          return true;
+        }
+      });
+    },
+    filteredUserOptions() {
+      if (this.deptId) {
+        return this.userList.filter(user => user.deptId === this.deptId);
+      } else {
+        return [];
+      }
+    },
+  },
   components: {},
   data() {
     return {
@@ -248,15 +302,18 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        userId: null,
-        deptId: null,
+        nickName: null,
+        deptName: null,
         name: null,
         isPayment: null,
       },
       // 表单参数
       form: {},
       // 表单校验
-      rules: {}
+      rules: {},
+      // 部门 ID 和相应的用户列表
+      deptId: null,
+      userList: []
     };
   },
   created() {
@@ -269,10 +326,23 @@ export default {
     });
   },
   methods: {
+    // 更新 userList[] 数据
+    updateUserList() {
+      if (this.deptId) {
+        // 调用 API 接口，获取当前部门下的用户列表
+        getProjects(this.deptId).then(data => {
+          this.userList = data;
+          console.log(data, "dataaaaaaaaaaaaaaaa")
+          console.log(this.userList, "this.userList aaaaaaaaaaaaaaaaaaaa")
+        });
+      } else {
+        this.userList = [];
+      }
+    },
     /** 查询项目列表 */
     getList() {
       this.loading = true;
-      listProjects(this.queryParams).then(response => {
+      listTask(this.queryParams).then(response => {
         this.projectsList = response.rows;
         this.total = response.total;
         this.loading = false;
@@ -296,21 +366,23 @@ export default {
       this.form = {
         id: null,
         userId: null,
+        nickName: null,
         deptId: null,
+        deptName: null,
         name: null,
         collaboratorId: null,
+        collaboratorName: null,
         collaboratorDeptId: null,
+        collaboratorDeptName: null,
         urgency: null,
         description: null,
         startTime: null,
         endTime: null,
         expenseSource: null,
         expenseAmount: null,
-        isPayment: 0,
-        isComplete: null,
+        isPayment: null,
         createTime: null,
-        updateTime: null,
-        isDelete: 0
+        updateTime: null
       };
       this.resetForm("form");
     },
@@ -388,12 +460,9 @@ export default {
     }
   },
   watch: {
-    'queryParams.deptId'(newVal) { // 监听 queryParams.deptId 的变化
-      console.log('Selected value deptId = :', newVal)
-    },
-    'queryParams.userId'(newVal) {
-      console.log("Selected value userId = ", newVal)
-    },
+    'queryParams.deptId'(val) {
+      console.log(val, "aaaaaaaaaaaaaaaaaaaaaaaa");
+    }
   },
 };
 </script>

@@ -98,39 +98,6 @@
       </el-table-column>
       <el-table-column label="费用出处" align="center" prop="expenseSource"/>
       <el-table-column label="费用金额" align="center" prop="expenseAmount"/>
-      <!--      <el-table-column label="图片" align="center" prop="imgUrl">
-              <template slot-scope="scope">
-                <img :src="scope.row.imgUrl" alt="" style="width:100%;height:150px;">
-              </template>
-            </el-table-column>
-            <el-table-column label="视频" align="center" prop="videoUrl">
-              <template slot-scope="scope">
-                <video-player style="width: 100%;height: 100%;margin:0 auto;" class="video-js vjs-big-play-centered"
-                              ref="videoPlayer"
-                              :playsinline="true"
-                              :options="playerOptions[scope.$index]"
-                              v-if="scope.row.videoUrl != null"
-                >
-                </video-player>
-                <div v-if="scope.row.videoUrl == null">
-                  无视频
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column label="文件" align="center" prop="fileUrl">
-              <a :href="completedList.fileUrl" download>下载该文件</a>
-            </el-table-column>-->
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template slot-scope="scope">
-          <el-button
-            size="mini"
-            type="text"
-            @click="handleAddFile(scope.row)"
-            v-hasPermi="['system:completed:addfile']"
-          >上传
-          </el-button>
-        </template>
-      </el-table-column>
     </el-table>
 
     <pagination
@@ -191,46 +158,13 @@
           </el-radio>
         </el-form-item>
         <el-form-item label="图片" prop="imgUrl">
-          <imageUpload v-model="form.imgUrl"/>
+          <fileUpload v-model="form.imgUrl" @input="handleUploadSuccessImg"/>
         </el-form-item>
-        <el-form-item label="视频">
-          <el-upload
-            class="avatar-uploader el-upload--text"
-            :action="uploadFileUrl"
-            :headers="headers"
-            :on-success="handleUploadSuccess"
-            style="border: 1px solid #DCDFE6;border-radius: 4px;padding: 10px;"
-          >
-            <video v-if="videoSrc !=='' && progressFlag === false" :src="videoSrc" class="avatar" controls="controls">
-              您的浏览器不支持视频播放
-            </video>
-            <i v-else-if="videoSrc ==='' && progressFlag === false" class="el-icon-plus avatar-uploader-icon"/>
-            <el-progress v-if="progressFlag === true" type="circle" :percentage="loadProgress"
-                         style="margin-top:30px;"/>
-            <!-- <div slot="tip" class="el-upload__tip" style="color: #E6A23C;"> 请保证视频格式正确，且不超过10M。</div> -->
-          </el-upload>
-          <span v-if="videoAddress">{{ videoAddress }}</span>
+        <el-form-item label="视频" prop="videoUrl">
+          <fileUpload v-model="form.videoUrl" @input="handleUploadSuccessVideo"/>
         </el-form-item>
-        <el-form-item label="文件">
-          <el-upload
-            class="avatar-uploader el-upload--text"
-            :action="uploadFileUrl"
-            :headers="headers"
-            :on-success="handleUploadSuccess"
-            style="border: 1px solid #DCDFE6;border-radius: 4px;padding: 10px;"
-          >
-            <i v-if="videoSrc ==='' && progressFlag === false" class="el-icon-plus avatar-uploader-icon"/>
-            <el-progress v-if="progressFlag === true" type="circle" :percentage="loadProgress"
-                         style="margin-top:30px;"/>
-          </el-upload>
-          <span v-if="videoAddress">
-            <el-button
-              size="mini"
-              type="text"
-              :href="videoAddress"
-            >点击下载视频查看
-          </el-button>
-          </span>
+        <el-form-item label="文件" prop="fileUrl">
+          <fileUpload v-model="form.fileUrl" @input="handleUploadSuccessFile"/>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -241,15 +175,16 @@
 </template>
 
 <script>
-import {listCompleted, getCompleted, delCompleted, addCompleted, updateCompleted} from "@/api/system/completed";
+import {addCompleted, listCompleted, updateCompleted} from "@/api/system/completed";
 import {listTask} from "@/api/system/task";
 import {parseTime} from "../../../utils/jeethink";
 import ImageUpload from "@/components/ImageUpload/index.vue";
 import {getToken} from "@/utils/auth";
+import FileUpload from "@/components/FileUpload/index.vue";
 
 export default {
   name: "Completed",
-  components: {ImageUpload},
+  components: {FileUpload, ImageUpload},
   data() {
     return {
       // 遮罩层
@@ -294,6 +229,9 @@ export default {
         Authorization: "Bearer " + getToken(),
       },
       videoAddress: '',
+      // 上传文件
+      fileSrc: '',
+      fileAddress: '',
     };
   },
   created() {
@@ -305,16 +243,37 @@ export default {
   methods: {
     parseTime,
     // 上传成功回调
-    handleUploadSuccess(res, file) {
-      console.log(res, "上传成功回调")
+    handleUploadSuccessVideo(res, file) {
       this.$message.success("上传成功");
-      this.$emit("input", res.data.videoUrl);
-      this.videoAddress = res.data.videoUrl
+      this.$emit("input", res);
+      this.fileAddress = res
+      if (res !== null) {
+        this.form.videoUrl = res
+        updateCompleted(this.form);
+      }
+    },
+    handleUploadSuccessFile(res, file) {
+      this.$message.success("上传成功");
+      this.$emit("input", res);
+      this.fileAddress = res
+      if (res !== null) {
+        this.form.fileUrl = res
+        updateCompleted(this.form);
+      }
+    },
+    handleUploadSuccessImg(res, file) {
+      this.$message.success("上传成功");
+      this.$emit("input", res);
+      this.fileAddress = res
+      if (res !== null) {
+        this.form.imgUrl = res
+        updateCompleted(this.form);
+      }
     },
     /** 查询已办列表 */
     getList() {
       this.loading = true;
-      listCompleted(this.queryParams).then(response => {
+      listTask(this.queryParams).then(response => {
         this.completedList = response.rows;
         this.total = response.total;
         this.loading = false;
