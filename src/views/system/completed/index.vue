@@ -193,7 +193,7 @@
         <el-form-item label="图片" prop="imgUrl">
           <imageUpload v-model="form.imgUrl"/>
         </el-form-item>
-        <el-form-item label="上传视频">
+        <el-form-item label="视频">
           <el-upload
             class="avatar-uploader el-upload--text"
             :action="uploadFileUrl"
@@ -210,6 +210,27 @@
             <!-- <div slot="tip" class="el-upload__tip" style="color: #E6A23C;"> 请保证视频格式正确，且不超过10M。</div> -->
           </el-upload>
           <span v-if="videoAddress">{{ videoAddress }}</span>
+        </el-form-item>
+        <el-form-item label="文件">
+          <el-upload
+            class="avatar-uploader el-upload--text"
+            :action="uploadFileUrl"
+            :headers="headers"
+            :on-success="handleUploadSuccess"
+            style="border: 1px solid #DCDFE6;border-radius: 4px;padding: 10px;"
+          >
+            <i v-if="videoSrc ==='' && progressFlag === false" class="el-icon-plus avatar-uploader-icon"/>
+            <el-progress v-if="progressFlag === true" type="circle" :percentage="loadProgress"
+                         style="margin-top:30px;"/>
+          </el-upload>
+          <span v-if="videoAddress">
+            <el-button
+              size="mini"
+              type="text"
+              :href="videoAddress"
+            >点击下载视频查看
+          </el-button>
+          </span>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
