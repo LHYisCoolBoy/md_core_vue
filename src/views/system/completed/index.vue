@@ -1,9 +1,9 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="项目名称" prop="projectId">
+      <el-form-item label="项目名称" prop="name">
         <el-input
-          v-model="queryParams.projectId"
+          v-model="queryParams.name"
           placeholder="请输入项目名称"
           clearable
           size="small"
@@ -158,13 +158,13 @@
           </el-radio>
         </el-form-item>
         <el-form-item label="图片" prop="imgUrl">
-          <fileUpload v-model="form.imgUrl" @input="handleUploadSuccessImg"/>
+          <OaFileUpload v-model="form.imgUrl" @input="handleUploadSuccessImg"/>
         </el-form-item>
         <el-form-item label="视频" prop="videoUrl">
-          <fileUpload v-model="form.videoUrl" @input="handleUploadSuccessVideo"/>
+          <OaFileUpload v-model="form.videoUrl" @input="handleUploadSuccessVideo"/>
         </el-form-item>
         <el-form-item label="文件" prop="fileUrl">
-          <fileUpload v-model="form.fileUrl" @input="handleUploadSuccessFile"/>
+          <OaFileUpload v-model="form.fileUrl" @input="handleUploadSuccessFile"/>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -175,16 +175,16 @@
 </template>
 
 <script>
-import {addCompleted, listCompleted, updateCompleted} from "@/api/system/completed";
+import {updateCompleted} from "@/api/system/completed";
 import {listTask} from "@/api/system/task";
 import {parseTime} from "../../../utils/jeethink";
 import ImageUpload from "@/components/ImageUpload/index.vue";
 import {getToken} from "@/utils/auth";
-import FileUpload from "@/components/FileUpload/index.vue";
+import OaFileUpload from "@/components/OaFileUpload/index.vue";
 
 export default {
   name: "Completed",
-  components: {FileUpload, ImageUpload},
+  components: {OaFileUpload, ImageUpload},
   data() {
     return {
       // 遮罩层
@@ -221,7 +221,7 @@ export default {
       // 表单校验
       rules: {},
       //上传视频文件
-      progressFlag: false, // 关闭进度条
+      /*progressFlag: false, // 关闭进度条
       loadProgress: 0, // 进度条初始值
       videoSrc: '',
       uploadFileUrl: 'http://core.mdgp.cn/api/mdcms-file/upload', // 上传的图片服务器地址
@@ -231,7 +231,7 @@ export default {
       videoAddress: '',
       // 上传文件
       fileSrc: '',
-      fileAddress: '',
+      fileAddress: '',*/
     };
   },
   created() {
@@ -246,7 +246,6 @@ export default {
     handleUploadSuccessVideo(res, file) {
       this.$message.success("上传成功");
       this.$emit("input", res);
-      this.fileAddress = res
       if (res !== null) {
         this.form.videoUrl = res
         updateCompleted(this.form);
@@ -255,7 +254,6 @@ export default {
     handleUploadSuccessFile(res, file) {
       this.$message.success("上传成功");
       this.$emit("input", res);
-      this.fileAddress = res
       if (res !== null) {
         this.form.fileUrl = res
         updateCompleted(this.form);
@@ -264,7 +262,6 @@ export default {
     handleUploadSuccessImg(res, file) {
       this.$message.success("上传成功");
       this.$emit("input", res);
-      this.fileAddress = res
       if (res !== null) {
         this.form.imgUrl = res
         updateCompleted(this.form);

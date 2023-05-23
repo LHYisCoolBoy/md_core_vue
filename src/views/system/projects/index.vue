@@ -104,7 +104,7 @@
       <el-table-column label="项目名称" align="center" prop="name"/>
       <el-table-column label="协同人" align="center" prop="collaboratorName"/>
       <el-table-column label="协同人部门" align="center" prop="collaboratorDeptName"/>
-      <el-table-column label="紧急程度" align="center" prop="urgency"/>
+      <el-table-column label="紧急程度" align="center" prop="urgency" :formatter="urgencyFormat"/>
       <el-table-column label="项目描述" align="center" prop="description"/>
       <el-table-column label="项目的开始时间" align="center" prop="startTime" width="180">
         <template slot-scope="scope">
@@ -153,7 +153,7 @@
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="部门" prop="deptId">
-          <el-select v-model="form.deptId" placeholder="请选择部门" @click="updateUserList">
+          <el-select v-model="form.deptId" placeholder="请选择部门" @change="updateUserList">
             <el-option
               v-for="(dept,index) in uniqueProjectsByDeptList"
               :key="index"
@@ -165,7 +165,7 @@
         <el-form-item label="用户" prop="userId">
           <el-select v-model="form.userId" placeholder="请选择用户">
             <el-option
-              v-for="(user,index) in filteredUserOptions"
+              v-for="(user,index) in this.userList"
               :key="index"
               :label="user.nickName"
               :value="user.userId"
@@ -183,6 +183,16 @@
         <el-form-item label="协同人部门 ID" prop="collaboratorDeptId">
           <el-select v-model="form.collaboratorDeptId" placeholder="请选择协同人部门 ID">
             <el-option label="请选择字典生成" value=""/>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="紧急程度" prop="urgency">
+          <el-select v-model="form.urgency" placeholder="请选择紧急程度">
+            <el-option
+              v-for="dict in urgencyOptions"
+              :key="dict.dictValue"
+              :label="dict.dictLabel"
+              :value="dict.dictValue"
+            ></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="项目描述" prop="description">
@@ -230,10 +240,10 @@
 </template>
 
 <script>
-import {listProjects, getProjects, delProjects, addProjects, updateProjects} from "@/api/system/projects";
-import {getInfo} from "@/api/login";
+import {addProjects, delProjects, getProjects, listProjectsByDeptId, updateProjects} from "@/api/system/projects";
 import {listTask} from "@/api/system/task";
 import dict from "../dict/index.vue";
+import {parseTime} from "../../../utils/jeethink";
 
 export default {
   name: "Projects",
@@ -294,6 +304,8 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 紧急程度字典
+      urgencyOptions: [],
       // 是否已支付字典
       isPaymentOptions: [],
       // 逻辑删除字典
@@ -305,19 +317,22 @@ export default {
         nickName: null,
         deptName: null,
         name: null,
+        deptId: null,
         isPayment: null,
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {},
-      // 部门 ID 和相应的用户列表
-      deptId: null,
+      // 根据部门 ID 筛选出的用户列表
       userList: []
     };
   },
   created() {
     this.getList();
+    this.getDicts("sys_oa_urgency").then(response => {
+      this.urgencyOptions = response.data;
+    });
     this.getDicts("sys_oa_projects").then(response => {
       this.isPaymentOptions = response.data;
     });
@@ -326,18 +341,14 @@ export default {
     });
   },
   methods: {
+    parseTime,
     // 更新 userList[] 数据
-    updateUserList() {
-      if (this.deptId) {
-        // 调用 API 接口，获取当前部门下的用户列表
-        getProjects(this.deptId).then(data => {
-          this.userList = data;
-          console.log(data, "dataaaaaaaaaaaaaaaa")
-          console.log(this.userList, "this.userList aaaaaaaaaaaaaaaaaaaa")
-        });
-      } else {
-        this.userList = [];
-      }
+    updateUserList(val) {
+      // 获取当前部门下的用户列表
+      this.queryParams.deptId = val
+      listProjectsByDeptId(this.queryParams).then(res => {
+        this.userList = res.rows;
+      });
     },
     /** 查询项目列表 */
     getList() {
@@ -347,6 +358,10 @@ export default {
         this.total = response.total;
         this.loading = false;
       });
+    },
+    // 紧急程度字典翻译
+    urgencyFormat(row, column) {
+      return this.selectDictLabel(this.urgencyOptions, row.urgency);
     },
     // 是否已支付字典翻译
     isPaymentFormat(row, column) {
@@ -459,10 +474,10 @@ export default {
       }, `system_projects.xlsx`)
     }
   },
-  watch: {
+  /*watch: {
     'queryParams.deptId'(val) {
       console.log(val, "aaaaaaaaaaaaaaaaaaaaaaaa");
     }
-  },
+  },*/
 };
 </script>
