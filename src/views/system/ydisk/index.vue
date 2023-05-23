@@ -101,8 +101,8 @@
           <span>{{ parseTime(scope.row.time, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="部门id" align="center" prop="deptId" />
-      <el-table-column label="用户id" align="center" prop="userId" />
+      <el-table-column label="部门" align="center" prop="deptId" />
+      <el-table-column label="用户" align="center" prop="userId" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -150,11 +150,11 @@
 ">
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="部门id" prop="deptId">
-          <el-input v-model="form.deptId" placeholder="请输入部门id" />
+        <el-form-item label="部门" prop="deptId" v-if="title != '添加捷电网盘'">
+          <el-input v-model="form.deptId" placeholder="请输入部门id" disabled />
         </el-form-item>
-        <el-form-item label="用户id" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入用户id" />
+        <el-form-item label="用户" prop="userId" v-if="title != '添加捷电网盘'">
+          <el-input v-model="form.userId" placeholder="请输入用户id" disabled />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -167,7 +167,7 @@
 
 <script>
 import { listYdisk, getYdisk, delYdisk, addYdisk, updateYdisk } from "@/api/system/ydisk";
-import FileUpload from '@/components/FileUpload';
+import FileUpload from '@/components/multiple';
 
 export default {
   name: "Ydisk",
