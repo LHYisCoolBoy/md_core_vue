@@ -17,53 +17,6 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <!--      <el-col :span="1.5">
-              <el-button
-                type="primary"
-                plain
-                icon="el-icon-plus"
-                size="mini"
-                disabled="disabled"
-                @click="handleAdd"
-                v-hasPermi="['system:completed:add']"
-              >新增
-              </el-button>
-            </el-col>-->
-      <!--      <el-col :span="1.5">
-              <el-button
-                type="success"
-                plain
-                icon="el-icon-edit"
-                size="mini"
-                disabled="disabled"
-                @click="handleUpdate"
-                v-hasPermi="['system:completed:edit']"
-              >修改
-              </el-button>
-            </el-col>-->
-      <!--      <el-col :span="1.5">
-              <el-button
-                type="danger"
-                plain
-                icon="el-icon-delete"
-                size="mini"
-                :disabled="multiple"
-                @click="handleDelete"
-                v-hasPermi="['system:completed:remove']"
-              >删除
-              </el-button>
-            </el-col>-->
-      <!--      <el-col :span="1.5">
-              <el-button
-                type="warning"
-                plain
-                icon="el-icon-download"
-                size="mini"
-                @click="handleExport"
-                v-hasPermi="['system:completed:export']"
-              >导出
-              </el-button>
-            </el-col>-->
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -158,13 +111,13 @@
           </el-radio>
         </el-form-item>
         <el-form-item label="图片" prop="imgUrl">
-          <OaFileUpload v-model="form.imgUrl" @input="handleUploadSuccessImg"/>
+          <OaFileUpload :show-button="true" v-model="form.imgUrl" @input="handleUploadSuccessImg"/>
         </el-form-item>
         <el-form-item label="视频" prop="videoUrl">
-          <OaFileUpload v-model="form.videoUrl" @input="handleUploadSuccessVideo"/>
+          <OaFileUpload :show-button="true" v-model="form.videoUrl" @input="handleUploadSuccessVideo"/>
         </el-form-item>
         <el-form-item label="文件" prop="fileUrl">
-          <OaFileUpload v-model="form.fileUrl" @input="handleUploadSuccessFile"/>
+          <OaFileUpload :show-button="true" v-model="form.fileUrl" @input="handleUploadSuccessFile"/>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">

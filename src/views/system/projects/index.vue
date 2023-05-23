@@ -101,7 +101,17 @@
       <el-table-column label="主键" align="center" prop="id"/>
       <el-table-column label="用户" align="center" prop="nickName"/>
       <el-table-column label="部门" align="center" prop="deptName"/>
-      <el-table-column label="项目名称" align="center" prop="name"/>
+      <el-table-column label="项目名称" align="center" prop="name">
+        <template slot-scope="scope">
+          <el-button
+            size="mini"
+            type="text"
+            @click="handleSelectByProjectId(scope.row)"
+            v-hasPermi="['system:projects:edit']"
+          >{{ scope.row.name }}
+          </el-button>
+        </template>
+      </el-table-column>
       <el-table-column label="协同人" align="center" prop="collaboratorName"/>
       <el-table-column label="协同人部门" align="center" prop="collaboratorDeptName"/>
       <el-table-column label="紧急程度" align="center" prop="urgency" :formatter="urgencyFormat"/>
@@ -153,7 +163,7 @@
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="部门" prop="deptId">
-          <el-select v-model="form.deptId" placeholder="请选择部门" @change="updateUserList">
+          <el-select v-model="form.deptId" placeholder="请选择部门" @change="updateUserId">
             <el-option
               v-for="(dept,index) in uniqueProjectsByDeptList"
               :key="index"
@@ -165,7 +175,7 @@
         <el-form-item label="用户" prop="userId">
           <el-select v-model="form.userId" placeholder="请选择用户">
             <el-option
-              v-for="(user,index) in this.userList"
+              v-for="(user,index) in uniqueByUserList"
               :key="index"
               :label="user.nickName"
               :value="user.userId"
@@ -175,14 +185,25 @@
         <el-form-item label="项目名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入项目名称"/>
         </el-form-item>
-        <el-form-item label="协同人 ID" prop="collaboratorId">
-          <el-select v-model="form.collaboratorId" placeholder="请选择协同人 ID">
-            <el-option label="请选择字典生成" value=""/>
+
+        <el-form-item label="协同人部门" prop="collaboratorDeptId">
+          <el-select v-model="form.collaboratorDeptId" placeholder="请选择协同人部门" @change="updateCollaboratorId">
+            <el-option
+              v-for="(dept,index) in uniqueProjectsByDeptList"
+              :key="index"
+              :label="dept.deptName"
+              :value="dept.deptId"
+            />
           </el-select>
         </el-form-item>
-        <el-form-item label="协同人部门 ID" prop="collaboratorDeptId">
-          <el-select v-model="form.collaboratorDeptId" placeholder="请选择协同人部门 ID">
-            <el-option label="请选择字典生成" value=""/>
+        <el-form-item label="协同人" prop="collaboratorId">
+          <el-select v-model="form.collaboratorId" placeholder="请选择协同人">
+            <el-option
+              v-for="(user,index) in uniqueByCollaboratorList"
+              :key="index"
+              :label="user.nickName"
+              :value="user.userId"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="紧急程度" prop="urgency">
@@ -236,6 +257,69 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+
+    <el-dialog :title="title01" :visible.sync="open01" width="500px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="用户名称" prop="nickName">
+          <el-input v-model="form.nickName"/>
+        </el-form-item>
+        <el-form-item label="部门名称" prop="deptName">
+          <el-input v-model="form.deptName"/>
+        </el-form-item>
+        <el-form-item label="项目名称" prop="name">
+          <el-input v-model="form.name"/>
+        </el-form-item>
+        <el-form-item label="协同人" prop="collaboratorName">
+          <el-input v-model="form.collaboratorName"/>
+        </el-form-item>
+        <el-form-item label="协同人部门" prop="collaboratorName">
+          <el-input v-model="form.collaboratorDeptName"/>
+        </el-form-item>
+        <el-form-item label="项目描述" prop="description">
+          <el-input v-model="form.description" type="textarea"/>
+        </el-form-item>
+        <el-form-item label="项目的开始时间" prop="startTime">
+          <el-date-picker clearable size="small"
+                          v-model="form.startTime"
+                          type="date"
+                          value-format="yyyy-MM-dd">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="项目预计的结束时间" prop="endTime">
+          <el-date-picker clearable size="small"
+                          v-model="form.endTime"
+                          type="date"
+                          value-format="yyyy-MM-dd">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="费用出处" prop="expenseSource">
+          <el-input v-model="form.expenseSource" type="textarea"/>
+        </el-form-item>
+        <el-form-item label="费用金额" prop="expenseAmount">
+          <el-input v-model="form.expenseAmount"/>
+        </el-form-item>
+        <el-form-item label="是否已支付" prop="isPayment">
+          <el-radio v-if="form.isPayment === 0">
+            未支付
+          </el-radio>
+          <el-radio v-if="form.isPayment === 1">
+            已支付
+          </el-radio>
+        </el-form-item>
+        <el-form-item label="图片" prop="imgUrl">
+          <OaFileUpload :show-button="false" v-model="form.imgUrl"/>
+        </el-form-item>
+        <el-form-item label="视频" prop="videoUrl">
+          <OaFileUpload :show-button="false" v-model="form.videoUrl"/>
+        </el-form-item>
+        <el-form-item label="文件" prop="fileUrl">
+          <OaFileUpload :show-button="false" v-model="form.fileUrl"/>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="cancel">关 闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -244,6 +328,7 @@ import {addProjects, delProjects, getProjects, listProjectsByDeptId, updateProje
 import {listTask} from "@/api/system/task";
 import dict from "../dict/index.vue";
 import {parseTime} from "../../../utils/jeethink";
+import OaFileUpload from "@/components/OaFileUpload/index.vue";
 
 export default {
   name: "Projects",
@@ -254,12 +339,14 @@ export default {
     // 部门信息去重
     uniqueProjectsByDeptList() {
       const set = new Set();
-      return this.projectsList.filter(dict => {
-        if (set.has(dict.deptId)) {
-          return false;
-        } else {
-          set.add(dict.deptId);
-          return true;
+      return this.listProjectsByDeptId.filter(list => {
+        if (list.deptId !== null) {
+          if (set.has(list.deptId)) {
+            return false;
+          } else {
+            set.add(list.deptId);
+            return true;
+          }
         }
       });
     },
@@ -275,15 +362,32 @@ export default {
         }
       });
     },
-    filteredUserOptions() {
-      if (this.deptId) {
-        return this.userList.filter(user => user.deptId === this.deptId);
-      } else {
-        return [];
-      }
+    // 新增按钮的用户下拉框去重
+    uniqueByUserList() {
+      const set = new Set();
+      return this.userList.filter(user => {
+        if (set.has(user.userId)) {
+          return false;
+        } else {
+          set.add(user.userId);
+          return true;
+        }
+      });
+    },
+    // 新增按钮协同人下拉框去重
+    uniqueByCollaboratorList() {
+      const set = new Set();
+      return this.collaboratorList.filter(collaborator => {
+        if (set.has(collaborator.userId)) {
+          return false;
+        } else {
+          set.add(collaborator.userId);
+          return true;
+        }
+      });
     },
   },
-  components: {},
+  components: {OaFileUpload},
   data() {
     return {
       // 遮罩层
@@ -302,8 +406,10 @@ export default {
       projectsList: [],
       // 弹出层标题
       title: "",
+      title01: "",
       // 是否显示弹出层
       open: false,
+      open01: false,
       // 紧急程度字典
       urgencyOptions: [],
       // 是否已支付字典
@@ -325,11 +431,14 @@ export default {
       // 表单校验
       rules: {},
       // 根据部门 ID 筛选出的用户列表
-      userList: []
+      userList: [],
+      collaboratorList: [],
+      listProjectsByDeptId: []
     };
   },
   created() {
     this.getList();
+    this.getListProjectsByDeptId();
     this.getDicts("sys_oa_urgency").then(response => {
       this.urgencyOptions = response.data;
     });
@@ -342,12 +451,26 @@ export default {
   },
   methods: {
     parseTime,
-    // 更新 userList[] 数据
-    updateUserList(val) {
+    // 更新 UserId 数据
+    updateUserId(val) {
+      this.form.userId = null;
       // 获取当前部门下的用户列表
-      this.queryParams.deptId = val
+      this.queryParams.deptId = val;
+      console.log(this.queryParams.deptId, "this.queryParams.deptId01")
       listProjectsByDeptId(this.queryParams).then(res => {
-        this.userList = res.rows;
+        this.userList = res.data;
+        console.log(res, "res01")
+      });
+    },
+    // 更新 updateCollaboratorId 数据
+    updateCollaboratorId(val) {
+      this.form.collaboratorId = null
+      // 获取当前部门下的协同人列表
+      this.queryParams.deptId = val;
+      console.log(this.queryParams.deptId, "this.queryParams.deptId02")
+      listProjectsByDeptId(this.queryParams).then(res => {
+        this.collaboratorList = res.data;
+        console.log(res, "res02")
       });
     },
     /** 查询项目列表 */
@@ -357,6 +480,11 @@ export default {
         this.projectsList = response.rows;
         this.total = response.total;
         this.loading = false;
+      });
+    },
+    getListProjectsByDeptId() {
+      listProjectsByDeptId().then(response => {
+        this.listProjectsByDeptId = response.data;
       });
     },
     // 紧急程度字典翻译
@@ -417,6 +545,17 @@ export default {
       this.single = selection.length !== 1
       this.multiple = !selection.length
     },
+    /** 查看项目详细信息按钮操作 */
+    handleSelectByProjectId(row) {
+      this.reset();
+      const id = row.id || this.ids
+      this.queryParams.id = id;
+      listTask(this.queryParams).then(response => {
+        this.form = response.rows[0];
+        this.open01 = true;
+        this.title01 = "项目信息";
+      });
+    },
     /** 新增按钮操作 */
     handleAdd() {
       this.reset();
@@ -474,10 +613,5 @@ export default {
       }, `system_projects.xlsx`)
     }
   },
-  /*watch: {
-    'queryParams.deptId'(val) {
-      console.log(val, "aaaaaaaaaaaaaaaaaaaaaaaa");
-    }
-  },*/
-};
+}
 </script>

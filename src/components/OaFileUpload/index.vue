@@ -14,7 +14,7 @@
       ref="upload"
     >
       <!-- 上传按钮 -->
-      <el-button size="mini" type="primary">选取文件</el-button>
+      <el-button v-if="showButton" size="mini" type="primary">选取文件</el-button>
       <!-- 上传提示 -->
       <!--      <div class="el-upload__tip" slot="tip" v-if="showTip">
               请上传
@@ -39,10 +39,11 @@
 </template>
 
 <script>
-import { getToken } from "@/utils/auth";
+import {getToken} from "@/utils/auth";
 
 export default {
   props: {
+    showButton: Boolean,
     // 值
     value: [String, Object, Array],
     // 大小限制(MB)
@@ -54,7 +55,7 @@ export default {
     fileType: {
       type: Array,
       // <!--"doc", "xls", "ppt", "txt", "pdf",-->
-      default: () => ["avi","rmvb","mp4","jpg","jpeg","png","gif"],
+      default: () => ["avi", "rmvb", "mp4", "jpg", "jpeg", "png", "gif"],
     },
     // 是否显示提示
     isShowTip: {
@@ -85,7 +86,7 @@ export default {
         // 然后将数组转为对象数组
         return list.map((item) => {
           if (typeof item === "string") {
-            item = { name: item, url: item };
+            item = {name: item, url: item};
           }
           item.uid = item.uid || new Date().getTime() + temp++;
           return item;
@@ -162,18 +163,21 @@ export default {
 .upload-file-uploader {
   margin-bottom: 5px;
 }
+
 .upload-file-list .el-upload-list__item {
   border: 1px solid #e4e7ed;
   line-height: 2;
   margin-bottom: 10px;
   position: relative;
 }
+
 .upload-file-list .ele-upload-list__item-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: inherit;
 }
+
 .ele-upload-list__item-content-action .el-link {
   margin-right: 10px;
 }
