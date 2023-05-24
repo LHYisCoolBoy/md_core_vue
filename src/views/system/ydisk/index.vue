@@ -94,7 +94,7 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="主键" align="center" prop="id" />
       <el-table-column label="项目名" align="center" prop="name" />
-      <el-table-column label="文件地址" align="center" prop="url" />
+      <el-table-column label="文件数量" align="center" prop="urlNo" />
       <el-table-column label="上传时间
 " align="center" prop="time" width="180">
         <template slot-scope="scope">
@@ -138,7 +138,7 @@
           <el-input v-model="form.name" placeholder="请输入项目名" />
         </el-form-item>
         <el-form-item label="文件地址">
-          <fileUpload v-model="form.url"/>
+          <fileUpload/>
         </el-form-item>
         <el-form-item label="上传时间
 " prop="time">
@@ -233,7 +233,6 @@ export default {
       this.form = {
         id: null,
         name: null,
-        url: null,
         time: null,
         deptId: null,
         userId: null
