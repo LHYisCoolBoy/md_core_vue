@@ -150,10 +150,10 @@
 ">
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="部门" prop="deptId" v-if="title != '添加捷电网盘'">
+        <el-form-item label="部门" prop="deptId" v-if="title != '上传新文件'">
           <el-input v-model="form.deptId" placeholder="请输入部门id" disabled />
         </el-form-item>
-        <el-form-item label="用户" prop="userId" v-if="title != '添加捷电网盘'">
+        <el-form-item label="用户" prop="userId" v-if="title != '上传新文件'">
           <el-input v-model="form.userId" placeholder="请输入用户id" disabled />
         </el-form-item>
       </el-form>
