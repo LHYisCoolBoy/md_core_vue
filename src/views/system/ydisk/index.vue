@@ -53,9 +53,9 @@
           size="mini"
           @click="handleAdd"
           v-hasPermi="['system:ydisk:add']"
-        >新增</el-button>
+        >上传新文件</el-button>
       </el-col>
-      <el-col :span="1.5">
+      <!--<el-col :span="1.5">
         <el-button
           type="success"
           plain
@@ -65,7 +65,7 @@
           @click="handleUpdate"
           v-hasPermi="['system:ydisk:edit']"
         >修改</el-button>
-      </el-col>
+      </el-col> -->
       <el-col :span="1.5">
         <el-button
           type="danger"
@@ -150,10 +150,10 @@
 ">
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="部门" prop="deptId" v-if="title != '添加捷电网盘'">
+        <el-form-item label="部门" prop="deptId" v-if="title != '上传新文件'">
           <el-input v-model="form.deptId" placeholder="请输入部门id" disabled />
         </el-form-item>
-        <el-form-item label="用户" prop="userId" v-if="title != '添加捷电网盘'">
+        <el-form-item label="用户" prop="userId" v-if="title != '上传新文件'">
           <el-input v-model="form.userId" placeholder="请输入用户id" disabled />
         </el-form-item>
       </el-form>
@@ -259,7 +259,7 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加捷电网盘";
+      this.title = "上传新文件";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -268,7 +268,7 @@ export default {
       getYdisk(id).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改捷电网盘";
+        this.title = "资源详情";
       });
     },
     /** 提交按钮 */
@@ -283,7 +283,7 @@ export default {
             });
           } else {
             addYdisk(this.form).then(response => {
-              this.msgSuccess("新增成功");
+              this.msgSuccess("上传成功");
               this.open = false;
               this.getList();
             });
@@ -294,7 +294,7 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$confirm('是否确认删除捷电网盘编号为"' + ids + '"的数据项?', "警告", {
+      this.$confirm('是否确认删除编号为"' + ids + '"的数据项?', "警告", {
           confirmButtonText: "确定",
           cancelButtonText: "取消",
           type: "warning"
