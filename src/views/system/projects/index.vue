@@ -82,7 +82,7 @@
         >删除
         </el-button>
       </el-col>
-      <el-col :span="1.5">
+      <!-- <el-col :span="1.5">
         <el-button
           type="warning"
           plain
@@ -92,7 +92,7 @@
           v-hasPermi="['system:projects:export']"
         >导出
         </el-button>
-      </el-col>
+      </el-col> -->
       <el-col :span="1.5">
         <el-button
           v-if="isAdmin"
