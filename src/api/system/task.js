@@ -9,6 +9,15 @@ export function listTask(query) {
   })
 }
 
+// 根据用户 ID 和是否已支付查询详细项目信息
+export function listByCollaboratorId(query) {
+  return request({
+    url: '/system/task/selectAllByCollaboratorId',
+    method: 'get',
+    params: query,
+  })
+}
+
 // 查询待办详细
 export function getTask(id) {
   return request({
