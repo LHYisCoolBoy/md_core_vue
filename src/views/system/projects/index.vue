@@ -93,6 +93,16 @@
         >导出
         </el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button
+          v-if="isAdmin"
+          type="danger"
+          size="mini"
+          @click="handleShowMessage"
+        >消息
+          <span> ({{ this.num }}) </span>
+        </el-button>
+      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -197,12 +207,13 @@
           </el-select>
         </el-form-item>
         <el-form-item label="协同人" prop="collaboratorId">
-          <el-select v-model="form.collaboratorId" placeholder="请选择协同人">
+          <el-select v-model="form.collaboratorId"
+                     placeholder="请选择协同人">
             <el-option
               v-for="(user,index) in uniqueByCollaboratorList"
               :key="index"
-              :label="user.nickName"
-              :value="user.userId"
+              :label="user.collaboratorName"
+              :value="user.collaboratorId"
             />
           </el-select>
         </el-form-item>
@@ -259,7 +270,7 @@
     </el-dialog>
 
     <el-dialog :title="title01" :visible.sync="open01" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+      <el-form disabled ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="用户名称" prop="nickName">
           <el-input v-model="form.nickName"/>
         </el-form-item>
@@ -316,16 +327,53 @@
           <OaFileUpload :show-button="false" v-model="form.fileUrl"/>
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="cancel">关 闭</el-button>
-      </div>
+    </el-dialog>
+
+    <el-dialog :visible.sync="open02" width="1000px" append-to-body>
+      <el-table v-loading="loading" :data="messageProjectsList">
+        <el-table-column label="主键" align="center" prop="id"/>
+        <el-table-column label="项目名称" align="center" prop="name">
+          <template slot-scope="scope">
+            <el-button
+              size="mini"
+              type="text"
+              @click="handleSelectByProjectId(scope.row)"
+              v-hasPermi="['system:projects:edit']"
+            >{{ scope.row.name }}
+            </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column label="协同人" align="center" prop="collaboratorName"/>
+        <el-table-column label="协同人部门" align="center" prop="collaboratorDeptName"/>
+        <el-table-column label="紧急程度" align="center" prop="urgency" :formatter="urgencyFormat"/>
+        <el-table-column label="项目描述" align="center" prop="description"/>
+        <el-table-column label="项目的开始时间" align="center" prop="startTime" width="180">
+          <template slot-scope="scope">
+            <span>{{ parseTime(scope.row.startTime, '{y}-{m}-{d}') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="项目预计的结束时间" align="center" prop="endTime" width="180">
+          <template slot-scope="scope">
+            <span>{{ parseTime(scope.row.endTime, '{y}-{m}-{d}') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="费用出处" align="center" prop="expenseSource"/>
+        <el-table-column label="费用金额" align="center" prop="expenseAmount"/>
+        <el-table-column label="是否已支付" align="center" prop="isPayment" :formatter="isPaymentFormat"/>
+      </el-table>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import {addProjects, delProjects, getProjects, listProjectsByDeptId, updateProjects} from "@/api/system/projects";
-import {listTask} from "@/api/system/task";
+import {
+  addProjects,
+  delProjects,
+  getMessageByUserIdCount,
+  listProjectsByDeptId,
+  updateProjects
+} from "@/api/system/projects";
+import {listByCollaboratorId, listTask} from "@/api/system/task";
 import dict from "../dict/index.vue";
 import {parseTime} from "../../../utils/jeethink";
 import OaFileUpload from "@/components/OaFileUpload/index.vue";
@@ -378,10 +426,10 @@ export default {
     uniqueByCollaboratorList() {
       const set = new Set();
       return this.collaboratorList.filter(collaborator => {
-        if (set.has(collaborator.userId)) {
+        if (set.has(collaborator.collaboratorId)) {
           return false;
         } else {
-          set.add(collaborator.userId);
+          set.add(collaborator.collaboratorId);
           return true;
         }
       });
@@ -404,12 +452,14 @@ export default {
       total: 0,
       // 项目表格数据
       projectsList: [],
+      messageProjectsList: [],
       // 弹出层标题
       title: "",
       title01: "",
       // 是否显示弹出层
       open: false,
       open01: false,
+      open02: false,
       // 紧急程度字典
       urgencyOptions: [],
       // 是否已支付字典
@@ -425,19 +475,31 @@ export default {
         name: null,
         deptId: null,
         isPayment: null,
+        collaboratorId: null,
+        userId: null,
+        id: null,
+      },
+      editParams: {
+        pageNum: 1,
+        pageSize: 10,
+        id: null
       },
       // 表单参数
       form: {},
       // 表单校验
       rules: {},
+      userInfo: this.$store.getters.userInfo,
       // 根据部门 ID 筛选出的用户列表
       userList: [],
       collaboratorList: [],
-      listProjectsByDeptId: []
+      listProjectsByDeptId: [],
+      num: null,
+      isAdmin: true,
     };
   },
   created() {
     this.getList();
+    this.getMessageByUserIdCountNum();
     this.getListProjectsByDeptId();
     this.getDicts("sys_oa_urgency").then(response => {
       this.urgencyOptions = response.data;
@@ -453,24 +515,23 @@ export default {
     parseTime,
     // 更新 UserId 数据
     updateUserId(val) {
-      this.form.userId = null;
+      // 给用户列表设置为空
+      this.userList = [];
       // 获取当前部门下的用户列表
       this.queryParams.deptId = val;
-      console.log(this.queryParams.deptId, "this.queryParams.deptId01")
       listProjectsByDeptId(this.queryParams).then(res => {
         this.userList = res.data;
-        console.log(res, "res01")
+        console.log(res, 'res')
       });
     },
     // 更新 updateCollaboratorId 数据
     updateCollaboratorId(val) {
-      this.form.collaboratorId = null
+      // 给协同人列表设置为空
+      this.collaboratorList = [];
       // 获取当前部门下的协同人列表
       this.queryParams.deptId = val;
-      console.log(this.queryParams.deptId, "this.queryParams.deptId02")
       listProjectsByDeptId(this.queryParams).then(res => {
         this.collaboratorList = res.data;
-        console.log(res, "res02")
       });
     },
     /** 查询项目列表 */
@@ -482,10 +543,20 @@ export default {
         this.loading = false;
       });
     },
+    // 获取部门信息
     getListProjectsByDeptId() {
       listProjectsByDeptId().then(response => {
         this.listProjectsByDeptId = response.data;
       });
+    },
+    // 获取工作台消息的数量
+    getMessageByUserIdCountNum() {
+      if (this.userInfo.admin) {
+        this.isAdmin = false;
+      }
+      getMessageByUserIdCount(this.userInfo.userId).then(res => {
+        this.num = res.data;
+      })
     },
     // 紧急程度字典翻译
     urgencyFormat(row, column) {
@@ -559,6 +630,9 @@ export default {
     /** 新增按钮操作 */
     handleAdd() {
       this.reset();
+      // 点击新增按钮后，给用户和协同人列表设置为空
+      this.userList = [];
+      this.collaboratorList = [];
       this.open = true;
       this.title = "添加项目";
     },
@@ -566,17 +640,42 @@ export default {
     handleUpdate(row) {
       this.reset();
       const id = row.id || this.ids
-      getProjects(id).then(response => {
-        this.form = response.data;
+      console.log(id, 'id')
+      if (Array.isArray(id)) {
+        this.editParams.id = id[0];
+      } else {
+        this.editParams.id = id;
+      }
+      listTask(this.editParams).then(res => {
+        this.form = res.rows[0];
         this.open = true;
         this.title = "修改项目";
-      });
+        // 查到信息后，调用更新用户信息和协同人信息的方法，传入用户的部门 ID 和协同人的部门 ID。
+        this.updateUserId(this.form.deptId);
+        this.updateCollaboratorId(this.form.collaboratorDeptId);
+      })
+    },
+    /** 消息按钮 */
+    handleShowMessage() {
+      console.log("消息按钮")
+      this.loading = true;
+      this.queryParams.isPayment = 0;
+      this.queryParams.userId = this.userInfo.userId;
+      console.log(this.queryParams.userId, "this.queryParams.userId")
+      listByCollaboratorId(this.queryParams).then(res => {
+        console.log(res, "res");
+        this.messageProjectsList = res.rows;
+        this.open02 = true;
+        this.total = res.total;
+        this.loading = false;
+      })
     },
     /** 提交按钮 */
     submitForm() {
       this.$refs["form"].validate(valid => {
         if (valid) {
           if (this.form.id != null) {
+            console.log(this.form, "提交 this.form")
             updateProjects(this.form).then(response => {
               this.msgSuccess("修改成功");
               this.open = false;

@@ -105,9 +105,9 @@
             type="text"
             icon="el-icon-success"
             @click="handlePayment(scope.row)"
-            v-hasPermi="['system:task:success']"
           >完成
           </el-button>
+          <!--            v-hasPermi="['system:task:success']"-->
         </template>
       </el-table-column>
     </el-table>
@@ -180,7 +180,6 @@
 <script>
 import {listTask, paymentProject} from "@/api/system/task";
 import {parseTime} from "../../../utils/jeethink";
-import {getInfo} from "@/api/login";
 
 export default {
   name: "Task",
@@ -222,6 +221,8 @@ export default {
       // 表单校验
       rules: {},
       playerOptions: {},
+      userInfo: this.$store.getters.userInfo,
+      taskPaymentShow: Boolean,
     };
   },
   created() {
@@ -235,17 +236,19 @@ export default {
     /** 查询待办列表 */
     getList() {
       this.loading = true;
-      getInfo().then(response => {
-        this.queryParams.userId = response.user.userId;
-        if (response.roles[0] === "admin") {
-          this.queryParams.userId = null;
-        }
-        listTask(this.queryParams).then(response => {
-          this.taskList = response.rows;
-          this.total = response.total;
-          this.loading = false;
-        });
-      })
+      this.queryParams.userId = this.userInfo.userId;
+      if (this.userInfo.admin) {
+        this.queryParams.userId = null;
+      }
+      listTask(this.queryParams).then(response => {
+        console.log(response,"response.rows.userId")
+        console.log(this.userInfo.userId,"this.userInfo.userId")
+        response.rows.
+
+        this.taskList = response.rows;
+        this.total = response.total;
+        this.loading = false;
+      });
     },
     // 逻辑删除字典翻译
     isDeleteFormat(row, column) {
