@@ -173,7 +173,6 @@ export default {
       form: {},
       // 表单校验
       rules: {},
-      userInfo: this.$store.getters.userInfo,
       //上传视频文件
       /*progressFlag: false, // 关闭进度条
       loadProgress: 0, // 进度条初始值
@@ -224,10 +223,6 @@ export default {
     /** 查询已办列表 */
     getList() {
       this.loading = true;
-      this.queryParams.userId = this.userInfo.userId;
-      if (this.userInfo.admin) {
-        this.queryParams.userId = null;
-      }
       listTask(this.queryParams).then(response => {
         this.completedList = response.rows;
         this.total = response.total;

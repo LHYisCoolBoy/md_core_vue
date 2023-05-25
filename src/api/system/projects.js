@@ -9,17 +9,6 @@ export function listProjects(query) {
   })
 }
 
-// 查询与当前用户有关系的项目信息
-export function getMessageByUserIdCount(userId) {
-  return request({
-    url: '/system/projects/selectByCollaboratorIdCount',
-    method: 'get',
-    params: {
-      userId: userId,
-    }
-  })
-}
-
 // 根据部门 ID 查询更多用户信息
 export function listProjectsByDeptId(query) {
   return request({

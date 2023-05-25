@@ -362,7 +362,6 @@ export default {
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
-      console.log(row,"row")
       this.reset();
       const id = row.id || this.ids
       getEssay(id).then(response => {
