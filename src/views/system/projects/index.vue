@@ -6,7 +6,7 @@
           <el-option
             v-for="(user,index) in uniqueProjectsByUserList"
             :key="index"
-            :label="user.nickName"
+            :label="`${user.nickName} - ${user.userId}`"
             :value="user.userId"
           />
         </el-select>
@@ -403,9 +403,11 @@ export default {
       const set = new Set();
       return this.projectsList.filter(dict => {
         if (set.has(dict.userId)) {
+          console.log(set, "set01")
           return false;
         } else {
           set.add(dict.userId);
+          console.log(set, "set02")
           return true;
         }
       });
