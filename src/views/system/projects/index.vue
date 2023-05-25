@@ -484,6 +484,9 @@ export default {
         pageSize: 10,
         id: null
       },
+      editDeptId: {
+        deptId: null
+      },
       // 表单参数
       form: {},
       // 表单校验
@@ -518,8 +521,8 @@ export default {
       // 给用户列表设置为空
       this.userList = [];
       // 获取当前部门下的用户列表
-      this.queryParams.deptId = val;
-      listProjectsByDeptId(this.queryParams).then(res => {
+      this.editDeptId.deptId = val;
+      listProjectsByDeptId(this.editDeptId).then(res => {
         this.userList = res.data;
         console.log(res, 'res')
       });
@@ -529,8 +532,8 @@ export default {
       // 给协同人列表设置为空
       this.collaboratorList = [];
       // 获取当前部门下的协同人列表
-      this.queryParams.deptId = val;
-      listProjectsByDeptId(this.queryParams).then(res => {
+      this.editDeptId.deptId = val;
+      listProjectsByDeptId(this.editDeptId).then(res => {
         this.collaboratorList = res.data;
       });
     },
@@ -646,6 +649,7 @@ export default {
       } else {
         this.editParams.id = id;
       }
+      console.log(this.editParams, "this.editParams")
       listTask(this.editParams).then(res => {
         this.form = res.rows[0];
         this.open = true;
@@ -653,6 +657,7 @@ export default {
         // 查到信息后，调用更新用户信息和协同人信息的方法，传入用户的部门 ID 和协同人的部门 ID。
         this.updateUserId(this.form.deptId);
         this.updateCollaboratorId(this.form.collaboratorDeptId);
+        console.log(this.form, "this.form")
       })
     },
     /** 消息按钮 */

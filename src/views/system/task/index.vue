@@ -105,7 +105,7 @@
             type="text"
             icon="el-icon-success"
             @click="handlePayment(scope.row)"
-            v-if="scope.row.userId == userInfo.userId || userInfo.userId == 1"
+            v-if="scope.row.userId === userInfo.userId || userInfo.userId === 1"
           >完成
           </el-button>
           <!--            v-hasPermi="['system:task:success']"-->
@@ -242,7 +242,7 @@ export default {
         this.queryParams.userId = null;
       }
       listTask(this.queryParams).then(response => {
-        console.log(this.userInfo,"user")
+        console.log(this.userInfo, "user")
         this.taskList = response.rows;
         this.total = response.total;
         this.loading = false;
