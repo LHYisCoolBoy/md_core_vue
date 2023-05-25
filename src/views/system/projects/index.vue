@@ -30,7 +30,7 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="是否已支付" prop="isPayment">
+      <el-form-item label="是否已支付" prop="isPayment" label-width="85px">
         <el-select v-model="queryParams.isPayment" placeholder="请选择是否已支付" clearable size="small">
           <el-option
             v-for="dict in isPaymentOptions"
@@ -170,8 +170,8 @@
     />
 
     <!-- 添加或修改项目对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+    <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-width="150px">
         <el-form-item label="部门" prop="deptId">
           <el-select v-model="form.deptId" placeholder="请选择部门" @change="updateUserId">
             <el-option
@@ -269,8 +269,8 @@
       </div>
     </el-dialog>
 
-    <el-dialog :title="title01" :visible.sync="open01" width="500px" append-to-body>
-      <el-form disabled ref="form" :model="form" :rules="rules" label-width="80px">
+    <el-dialog :title="title01" :visible.sync="open01" width="800px" append-to-body>
+      <el-form disabled ref="form" :model="form" :rules="rules" label-width="150px">
         <el-form-item label="用户名称" prop="nickName">
           <el-input v-model="form.nickName"/>
         </el-form-item>

@@ -62,8 +62,8 @@
     />
 
     <!-- 添加或修改已办对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+    <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-width="150px">
         <el-form-item label="用户名称" prop="nickName">
           <el-input v-model="form.nickName"/>
         </el-form-item>
