@@ -69,9 +69,6 @@
 
     <el-table v-loading="loading" :data="taskList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center"/>
-      <el-table-column label="主键" align="center" prop="id"/>
-      <el-table-column label="用户昵称" align="center" prop="nickName"/>
-      <el-table-column label="部门名称" align="center" prop="deptName"/>
       <el-table-column label="项目名称" align="center" prop="name">
         <template slot-scope="scope">
           <el-button
@@ -83,20 +80,24 @@
           </el-button>
         </template>
       </el-table-column>
-      <el-table-column label="协同人名称" align="center" prop="collaboratorName"/>
-      <el-table-column label="协同人部门" align="center" prop="collaboratorDeptName"/>
-      <el-table-column label="项目描述" align="center" prop="description"/>
-      <el-table-column label="项目开始时间" align="center" prop="startTime">
+      <!-- <el-table-column label="主键" align="center" prop="id"/> -->
+      <el-table-column label="项目负责人" align="center" prop="nickName"/>
+      <el-table-column label="归属部门" align="center" prop="deptName"/>
+      <!-- <el-table-column label="协同人" align="center" prop="collaboratorName"/>
+      <el-table-column label="协同人部门" align="center" prop="collaboratorDeptName"/> -->
+      <el-table-column label="紧急程度" align="center" prop="urgency" :formatter="urgencyFormat"/>
+      <!-- <el-table-column label="项目描述" align="center" prop="description"/> -->
+      <el-table-column label="项目的开始时间" align="center" prop="startTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.startTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="项目结束时间" align="center" prop="endTime">
+      <el-table-column label="项目预计的结束时间" align="center" prop="endTime" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.startTime, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(scope.row.endTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="费用出处" align="center" prop="expenseSource"/>
+      <!-- <el-table-column label="费用出处" align="center" prop="expenseSource"/> -->
       <el-table-column label="费用金额" align="center" prop="expenseAmount"/>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
