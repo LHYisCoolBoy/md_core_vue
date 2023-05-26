@@ -6,7 +6,7 @@
           <el-option
             v-for="(user,index) in uniqueProjectsByUserList"
             :key="index"
-            :label="`${user.nickName} - ${user.userId}`"
+            :label="user.nickName"
             :value="user.userId"
           />
         </el-select>
@@ -403,11 +403,9 @@ export default {
       const set = new Set();
       return this.projectsList.filter(dict => {
         if (set.has(dict.userId)) {
-          console.log(set, "set01")
           return false;
         } else {
           set.add(dict.userId);
-          console.log(set, "set02")
           return true;
         }
       });
@@ -651,7 +649,6 @@ export default {
       } else {
         this.editParams.id = id;
       }
-      console.log(this.editParams, "this.editParams")
       listTask(this.editParams).then(res => {
         this.form = res.rows[0];
         this.open = true;
@@ -659,7 +656,6 @@ export default {
         // 查到信息后，调用更新用户信息和协同人信息的方法，传入用户的部门 ID 和协同人的部门 ID。
         this.updateUserId(this.form.deptId);
         this.updateCollaboratorId(this.form.collaboratorDeptId);
-        console.log(this.form, "this.form")
       })
     },
     /** 消息按钮 */
@@ -668,7 +664,6 @@ export default {
       this.loading = true;
       this.queryParams.isPayment = 0;
       this.queryParams.userId = this.userInfo.userId;
-      console.log(this.queryParams.userId, "this.queryParams.userId")
       listByCollaboratorId(this.queryParams).then(res => {
         console.log(res, "res");
         this.messageProjectsList = res.rows;

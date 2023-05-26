@@ -55,7 +55,7 @@ export default {
     fileType: {
       type: Array,
       // <!--"doc", "xls", "ppt", "txt", "pdf",-->
-      default: () => ["avi", "rmvb", "mp4", "jpg", "jpeg", "png", "gif"],
+      default: () => ["avi", "rmvb", "mp4", "jpg", "jpeg", "png", "gif", "pdf", "txt", "word", "excel"],
     },
     // 是否显示提示
     isShowTip: {
@@ -142,7 +142,7 @@ export default {
     // 删除文件
     handleDelete(index) {
       this.fileList.splice(index, 1);
-      this.$emit("input", '');
+      this.$emit("delete", '');
     },
     // 获取文件名称
     getFileName(name) {

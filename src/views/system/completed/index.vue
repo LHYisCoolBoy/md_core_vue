@@ -111,13 +111,16 @@
           </el-radio>
         </el-form-item>
         <el-form-item label="图片" prop="imgUrl">
-          <OaFileUpload :show-button="true" v-model="form.imgUrl" @input="handleUploadSuccessImg"/>
+          <OaFileUpload :show-button="true" v-model="form.imgUrl" @delete="handleDeleteImg"
+                        @input="handleUploadSuccessImg"/>
         </el-form-item>
         <el-form-item label="视频" prop="videoUrl">
-          <OaFileUpload :show-button="true" v-model="form.videoUrl" @input="handleUploadSuccessVideo"/>
+          <OaFileUpload :show-button="true" v-model="form.videoUrl" @delete="handleDeleteVideo"
+                        @input="handleUploadSuccessVideo"/>
         </el-form-item>
         <el-form-item label="文件" prop="fileUrl">
-          <OaFileUpload :show-button="true" v-model="form.fileUrl" @input="handleUploadSuccessFile"/>
+          <OaFileUpload :show-button="true" v-model="form.fileUrl" @delete="handleDeleteFile"
+                        @input="handleUploadSuccessFile"/>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -134,6 +137,7 @@ import {parseTime} from "../../../utils/jeethink";
 import ImageUpload from "@/components/ImageUpload/index.vue";
 import {getToken} from "@/utils/auth";
 import OaFileUpload from "@/components/OaFileUpload/index.vue";
+import {compile} from "vue-template-compiler";
 
 export default {
   name: "Completed",
@@ -173,18 +177,6 @@ export default {
       form: {},
       // 表单校验
       rules: {},
-      //上传视频文件
-      /*progressFlag: false, // 关闭进度条
-      loadProgress: 0, // 进度条初始值
-      videoSrc: '',
-      uploadFileUrl: 'http://core.mdgp.cn/api/mdcms-file/upload', // 上传的图片服务器地址
-      headers: {
-        Authorization: "Bearer " + getToken(),
-      },
-      videoAddress: '',
-      // 上传文件
-      fileSrc: '',
-      fileAddress: '',*/
     };
   },
   created() {
@@ -195,6 +187,22 @@ export default {
   },
   methods: {
     parseTime,
+    // 删除成功回调
+    handleDeleteImg() {
+      this.$message.success("删除成功");
+      this.form.imgUrl = "";
+      updateCompleted(this.form);
+    },
+    handleDeleteVideo() {
+      this.$message.success("删除成功");
+      this.form.videoUrl = "";
+      updateCompleted(this.form);
+    },
+    handleDeleteFile() {
+      this.$message.success("删除成功");
+      this.form.fileUrl = "";
+      updateCompleted(this.form);
+    },
     // 上传成功回调
     handleUploadSuccessVideo(res, file) {
       this.$message.success("上传成功");
@@ -215,6 +223,7 @@ export default {
     handleUploadSuccessImg(res, file) {
       this.$message.success("上传成功");
       this.$emit("input", res);
+      console.log(res, "res")
       if (res !== null) {
         this.form.imgUrl = res
         updateCompleted(this.form);

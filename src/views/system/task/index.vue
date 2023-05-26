@@ -217,6 +217,9 @@ export default {
         isPayment: 0,
         userId: null, // 获取当前登录的用户 ID
       },
+      paymentParams: {
+        id: null,
+      },
       // 表单参数
       form: {},
       // 表单校验
@@ -311,12 +314,13 @@ export default {
     /** 完成按钮操作 */
     handlePayment(row) {
       const id = row.id || this.ids
+      this.paymentParams.id = id;
       this.$confirm('是否确认完成待办编号为"' + id + '"的数据项?', "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
-      }).then(function () {
-        return paymentProject(id);
+      }).then(() => {
+        return paymentProject(this.paymentParams);
       }).then(() => {
         this.getList();
         this.msgSuccess("操作成功");

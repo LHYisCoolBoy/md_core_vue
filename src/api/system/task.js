@@ -53,12 +53,10 @@ export function delTask(id) {
 }
 
 // 完成待办
-export function paymentProject(id) {
+export function paymentProject(data) {
   return request({
     url: '/system/task/updateIsCompleteById',
     method: 'post',
-    params: {
-      id: id
-    }
+    data: data,
   })
 }
