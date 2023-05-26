@@ -108,9 +108,6 @@
 
     <el-table v-loading="loading" :data="projectsList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center"/>
-      <el-table-column label="主键" align="center" prop="id"/>
-      <el-table-column label="用户" align="center" prop="nickName"/>
-      <el-table-column label="部门" align="center" prop="deptName"/>
       <el-table-column label="项目名称" align="center" prop="name">
         <template slot-scope="scope">
           <el-button
@@ -122,10 +119,13 @@
           </el-button>
         </template>
       </el-table-column>
-      <el-table-column label="协同人" align="center" prop="collaboratorName"/>
-      <el-table-column label="协同人部门" align="center" prop="collaboratorDeptName"/>
+      <!-- <el-table-column label="主键" align="center" prop="id"/> -->
+      <el-table-column label="项目负责人" align="center" prop="nickName"/>
+      <el-table-column label="归属部门" align="center" prop="deptName"/>
+      <!-- <el-table-column label="协同人" align="center" prop="collaboratorName"/>
+      <el-table-column label="协同人部门" align="center" prop="collaboratorDeptName"/> -->
       <el-table-column label="紧急程度" align="center" prop="urgency" :formatter="urgencyFormat"/>
-      <el-table-column label="项目描述" align="center" prop="description"/>
+      <!-- <el-table-column label="项目描述" align="center" prop="description"/> -->
       <el-table-column label="项目的开始时间" align="center" prop="startTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.startTime, '{y}-{m}-{d}') }}</span>
@@ -136,7 +136,7 @@
           <span>{{ parseTime(scope.row.endTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="费用出处" align="center" prop="expenseSource"/>
+      <!-- <el-table-column label="费用出处" align="center" prop="expenseSource"/> -->
       <el-table-column label="费用金额" align="center" prop="expenseAmount"/>
       <el-table-column label="是否已支付" align="center" prop="isPayment" :formatter="isPaymentFormat"/>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
