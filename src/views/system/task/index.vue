@@ -240,6 +240,7 @@ export default {
     /** 查询待办列表 */
     getList() {
       this.loading = true;
+      this.queryParams.id = null;
       this.queryParams.userId = this.userInfo.userId;
       if (this.userInfo.admin) {
         this.queryParams.userId = null;

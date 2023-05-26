@@ -232,6 +232,7 @@ export default {
     /** 查询已办列表 */
     getList() {
       this.loading = true;
+      this.queryParams.id = null;
       listTask(this.queryParams).then(response => {
         this.completedList = response.rows;
         this.total = response.total;

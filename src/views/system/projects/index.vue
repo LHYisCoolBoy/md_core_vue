@@ -540,6 +540,7 @@ export default {
     /** 查询项目列表 */
     getList() {
       this.loading = true;
+      this.queryParams.id = null;
       listTask(this.queryParams).then(response => {
         this.projectsList = response.rows;
         this.total = response.total;
