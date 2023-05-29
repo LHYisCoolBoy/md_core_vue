@@ -40,14 +40,19 @@
       <el-table-column label="协同人部门" align="center" prop="collaboratorDeptName"/> -->
       <el-table-column label="紧急程度" align="center" prop="urgency" :formatter="urgencyFormat"/>
       <!-- <el-table-column label="项目描述" align="center" prop="description"/> -->
-      <el-table-column label="项目的开始时间" align="center" prop="startTime" width="180">
+      <el-table-column label="项目开始时间" align="center" prop="startTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.startTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="项目预计的结束时间" align="center" prop="endTime" width="180">
+      <el-table-column label="项目结束时间" align="center" prop="endTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.endTime, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="项目周期 (天)" align="center" width="180">
+        <template slot-scope="scope">
+          {{getDiffDay(scope.row.endTime,scope.row.startTime)}}
         </template>
       </el-table-column>
       <!-- <el-table-column label="费用出处" align="center" prop="expenseSource"/> -->
@@ -83,14 +88,14 @@
         <el-form-item label="项目描述" prop="description">
           <el-input v-model="form.description" type="textarea"/>
         </el-form-item>
-        <el-form-item label="项目的开始时间" prop="startTime">
+        <el-form-item label="项目开始时间" prop="startTime">
           <el-date-picker clearable size="small"
                           v-model="form.startTime"
                           type="date"
                           value-format="yyyy-MM-dd">
           </el-date-picker>
         </el-form-item>
-        <el-form-item label="项目预计的结束时间" prop="endTime">
+        <el-form-item label="项目结束时间" prop="endTime">
           <el-date-picker clearable size="small"
                           v-model="form.endTime"
                           type="date"
@@ -187,6 +192,18 @@ export default {
     });
   },
   methods: {
+    //计算日期间隔天数
+     getDiffDay(date_1, date_2) {
+        // 计算两个日期之间的差值
+        let totalDays, diffDate
+        let myDate_1 = Date.parse(date_1)
+        let myDate_2 = Date.parse(date_2)
+        // 将两个日期都转换为毫秒格式，然后做差
+        diffDate = Math.abs(myDate_1 - myDate_2) // 取相差毫秒数的绝对值
+        totalDays = Math.floor(diffDate / (1000 * 3600 * 24)) // 向下取整
+        // console.log(totalDays)
+        return totalDays // 相差的天数
+    },
     parseTime,
     // 删除成功回调
     handleDeleteImg() {
