@@ -221,6 +221,33 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item label="客户部门" prop="customerDepartmentName">
+          <el-input v-model="form.customerDepartmentName" placeholder="请输入客户部门名称"/>
+        </el-form-item>
+        <el-form-item label="客户姓名" prop="customerContactPerson">
+          <el-input v-model="form.customerContactPerson" placeholder="客户姓名"/>
+        </el-form-item>
+        <el-form-item label="客户手机号" prop="customerContactPhone">
+          <el-input v-model="form.customerContactPhone" placeholder="客户手机号"/>
+        </el-form-item>
+        <el-form-item label="供应商" prop="supplierName">
+          <el-input v-model="form.supplierName" placeholder="客户手机号"/>
+        </el-form-item>
+        <el-form-item label="供应商姓名" prop="supplierContactPerson">
+          <el-input v-model="form.supplierContactPerson" placeholder="客户手机号"/>
+        </el-form-item>
+        <el-form-item label="供应商手机号" prop="supplierContactPhone">
+          <el-input v-model="form.supplierContactPhone" placeholder="客户手机号"/>
+        </el-form-item>
+        <el-form-item label="供应物资名称" prop="materialName">
+          <el-input v-model="form.materialName" placeholder="客户手机号"/>
+        </el-form-item>
+        <el-form-item label="供应物资数量" prop="materialQuantity">
+          <el-input v-model="form.materialQuantity" placeholder="客户手机号"/>
+        </el-form-item>
+        <el-form-item label="供应物资价格" prop="materialPrice">
+          <el-input v-model="form.materialPrice" placeholder="客户手机号"/>
+        </el-form-item>
         <el-form-item label="紧急程度" prop="urgency">
           <el-select v-model="form.urgency" placeholder="请选择紧急程度">
             <el-option
