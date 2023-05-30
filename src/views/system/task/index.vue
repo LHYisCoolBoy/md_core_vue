@@ -85,7 +85,7 @@
       <el-table-column label="归属部门" align="center" prop="deptName"/>
       <!-- <el-table-column label="协同人" align="center" prop="collaboratorName"/>
       <el-table-column label="协同人部门" align="center" prop="collaboratorDeptName"/> -->
-      <el-table-column label="紧急程度" align="center" prop="urgency" :formatter="urgencyFormat"/>
+      <el-table-column label="紧急程度" align="center" prop="urgency"/>
       <!-- <el-table-column label="项目描述" align="center" prop="description"/> -->
       <el-table-column label="项目开始时间" align="center" prop="startTime" width="180">
         <template slot-scope="scope">
