@@ -143,6 +143,7 @@
       </el-table-column>
       <el-table-column label="费用金额" align="center" prop="expenseAmount"/>
       <el-table-column label="是否已支付" align="center" prop="isPayment" :formatter="isPaymentFormat"/>
+       <el-table-column label="完成状态" align="center" prop="isComplete" :formatter="isCompleteFormat"/>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -318,6 +319,16 @@
             >{{ dict.dictLabel }}
             </el-radio>
           </el-radio-group>
+        </el-form-item>
+        <el-form-item label="是否已完成" prop="isComplete">
+          <el-select v-model="form.isComplete" placeholder="请选择是否已完成">
+          <el-option
+          v-for="dict in isCompleteOptions"
+          :key="dict.dictValue"
+          :label="dict.dictLabel"
+          :value="parseInt(dict.dictValue)"
+          ></el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -570,6 +581,8 @@ export default {
       isPaymentOptions: [],
       // 逻辑删除字典
       isDeleteOptions: [],
+      //完成状态字典
+      isCompleteOptions: [],
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -645,6 +658,9 @@ export default {
     this.getDicts("sys_status").then(response => {
       this.isDeleteOptions = response.data;
     });
+    this.getDicts("sys_oa_complete").then(response => {
+      this.isCompleteOptions = response.data;
+    });
   },
   methods: {
       //计算日期间隔天数
@@ -716,6 +732,10 @@ export default {
     // 逻辑删除字典翻译
     isDeleteFormat(row, column) {
       return this.selectDictLabel(this.isDeleteOptions, row.isDelete);
+    },
+    // 完成状态字典翻译
+    isCompleteFormat(row, column) {
+      return this.selectDictLabel(this.isCompleteOptions, row.isComplete);
     },
     // 取消按钮
     cancel() {

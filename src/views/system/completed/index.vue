@@ -163,15 +163,15 @@
             已支付
           </el-radio>
         </el-form-item>
-        <el-form-item label="图片" prop="imgUrl">
+        <el-form-item label="项目图片" prop="imgUrl">
           <OaFileUpload :show-button="true" v-model="form.imgUrl" @delete="handleDeleteImg"
                         @input="handleUploadSuccessImg"/>
         </el-form-item>
-        <el-form-item label="视频" prop="videoUrl">
+        <el-form-item label="项目视频" prop="videoUrl">
           <OaFileUpload :show-button="true" v-model="form.videoUrl" @delete="handleDeleteVideo"
                         @input="handleUploadSuccessVideo"/>
         </el-form-item>
-        <el-form-item label="文件" prop="fileUrl">
+        <el-form-item label="项目文件" prop="fileUrl">
           <OaFileUpload :show-button="true" v-model="form.fileUrl" @delete="handleDeleteFile"
                         @input="handleUploadSuccessFile"/>
         </el-form-item>
