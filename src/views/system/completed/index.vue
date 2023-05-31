@@ -70,23 +70,23 @@
     <!-- 添加或修改已办对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="150px">
-        <el-form-item label="用户名称" prop="nickName">
+        <el-form-item label="负责人名称" prop="nickName">
           <el-input v-model="form.nickName"/>
         </el-form-item>
-        <el-form-item label="部门名称" prop="deptName">
+        <el-form-item label="负责人部门名称" prop="deptName">
           <el-input v-model="form.deptName"/>
         </el-form-item>
         <el-form-item label="项目名称" prop="name">
           <el-input v-model="form.name"/>
         </el-form-item>
-        <el-form-item label="协同人" prop="collaboratorName">
+        <el-form-item label="参与人" prop="collaboratorName">
           <el-input v-model="form.collaboratorName"/>
         </el-form-item>
-        <el-form-item label="协同人部门" prop="collaboratorName">
+        <el-form-item label="参与人部门" prop="collaboratorName">
           <el-input v-model="form.collaboratorDeptName"/>
         </el-form-item>
         <el-form-item label="项目分类" prop="projectCategory">
-          <el-select v-model="form.projectCategory" placeholder="项目分类">
+          <el-select v-model="form.projectCategory" placeholder="请选择项目分类">
             <el-option
               v-for="item in options"
               :key="item.value"
@@ -95,7 +95,7 @@
             </el-option>
           </el-select>
         </el-form-item>
-         <el-form-item label="客户部门" prop="customerDepartmentName">
+          <el-form-item label="客户部门" prop="customerDepartmentName">
           <el-input v-model="form.customerDepartmentName" placeholder="请输入客户部门名称"/>
         </el-form-item>
         <el-form-item label="客户姓名" prop="customerContactPerson">
@@ -104,27 +104,27 @@
         <el-form-item label="客户手机号" prop="customerContactPhone">
           <el-input v-model="form.customerContactPhone" placeholder="客户手机号"/>
         </el-form-item>
-        <el-form-item label="供应商" prop="supplierName">
-          <el-input v-model="form.supplierName" placeholder="客户手机号"/>
+        <el-form-item label="供应商公司名称" prop="supplierName">
+          <el-input v-model="form.supplierName" placeholder="供应商公司名称"/>
         </el-form-item>
-        <el-form-item label="供应商姓名" prop="supplierContactPerson">
-          <el-input v-model="form.supplierContactPerson" placeholder="客户手机号"/>
+        <el-form-item label="供应商联系人" prop="supplierContactPerson">
+          <el-input v-model="form.supplierContactPerson" placeholder="供应商联系人"/>
         </el-form-item>
-        <el-form-item label="供应商手机号" prop="supplierContactPhone">
-          <el-input v-model="form.supplierContactPhone" placeholder="客户手机号"/>
+        <el-form-item label="联系人手机号" prop="supplierContactPhone">
+          <el-input v-model="form.supplierContactPhone" placeholder="联系人手机号"/>
         </el-form-item>
         <el-form-item label="供应物资名称" prop="materialName">
-          <el-input v-model="form.materialName" placeholder="客户手机号"/>
+          <el-input v-model="form.materialName" placeholder="供应物资名称"/>
         </el-form-item>
         <el-form-item label="供应物资数量" prop="materialQuantity">
-          <el-input v-model="form.materialQuantity" placeholder="客户手机号"/>
+          <el-input v-model="form.materialQuantity" placeholder="供应物资数量"/>
         </el-form-item>
         <el-form-item label="供应物资价格" prop="materialPrice">
-          <el-input v-model="form.materialPrice" placeholder="客户手机号"/>
+          <el-input v-model="form.materialPrice" placeholder="供应物资价格"/>
         </el-form-item>
-        <el-form-item label="项目描述" prop="description">
+        <!-- <el-form-item label="项目描述" prop="description">
           <el-input v-model="form.description" type="textarea"/>
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="项目开始时间" prop="startTime">
           <el-date-picker clearable size="small"
                           v-model="form.startTime"
