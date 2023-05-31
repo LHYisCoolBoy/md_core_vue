@@ -145,6 +145,43 @@
         <el-form-item label="协同人部门" prop="collaboratorName">
           <el-input v-model="form.collaboratorDeptName"/>
         </el-form-item>
+        <el-form-item label="项目分类" prop="projectCategory">
+          <el-select v-model="form.projectCategory" placeholder="项目分类">
+            <el-option
+              v-for="item in options"
+              :key="item.value"
+              :label="item.label"
+              :value="parseInt(item.value)">
+            </el-option>
+          </el-select>
+        </el-form-item>
+         <el-form-item label="客户部门" prop="customerDepartmentName">
+          <el-input v-model="form.customerDepartmentName" placeholder="请输入客户部门名称"/>
+        </el-form-item>
+        <el-form-item label="客户姓名" prop="customerContactPerson">
+          <el-input v-model="form.customerContactPerson" placeholder="客户姓名"/>
+        </el-form-item>
+        <el-form-item label="客户手机号" prop="customerContactPhone">
+          <el-input v-model="form.customerContactPhone" placeholder="客户手机号"/>
+        </el-form-item>
+        <el-form-item label="供应商" prop="supplierName">
+          <el-input v-model="form.supplierName" placeholder="客户手机号"/>
+        </el-form-item>
+        <el-form-item label="供应商姓名" prop="supplierContactPerson">
+          <el-input v-model="form.supplierContactPerson" placeholder="客户手机号"/>
+        </el-form-item>
+        <el-form-item label="供应商手机号" prop="supplierContactPhone">
+          <el-input v-model="form.supplierContactPhone" placeholder="客户手机号"/>
+        </el-form-item>
+        <el-form-item label="供应物资名称" prop="materialName">
+          <el-input v-model="form.materialName" placeholder="客户手机号"/>
+        </el-form-item>
+        <el-form-item label="供应物资数量" prop="materialQuantity">
+          <el-input v-model="form.materialQuantity" placeholder="客户手机号"/>
+        </el-form-item>
+        <el-form-item label="供应物资价格" prop="materialPrice">
+          <el-input v-model="form.materialPrice" placeholder="客户手机号"/>
+        </el-form-item>
         <el-form-item label="项目描述" prop="description">
           <el-input v-model="form.description" type="textarea"/>
         </el-form-item>
@@ -167,6 +204,16 @@
         </el-form-item>
         <el-form-item label="费用金额" prop="expenseAmount">
           <el-input v-model="form.expenseAmount"/>
+        </el-form-item>
+        <el-form-item label="是否第一次接触">
+          <el-radio-group v-model="form.firstContact">
+            <el-radio :label="0">
+              是
+            </el-radio>
+            <el-radio :label="1">
+              否
+            </el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item label="是否已支付" prop="isPayment">
           <el-radio v-if="form.isPayment === 0">
@@ -193,6 +240,34 @@ export default {
   components: {},
   data() {
     return {
+      options: [{
+        value: '0',
+        label: '技术开发'
+      }, {
+        value: '1',
+        label: '技术维护'
+      }, {
+        value: '2',
+        label: '物资采买'
+      }, {
+        value: '3',
+        label: '平面设计'
+      }, {
+        value: '4',
+        label: '展陈设计'
+      }, {
+        value: '5',
+        label: '施工'
+      }, {
+        value: '6',
+        label: '文案策划'
+      }, {
+        value: '7',
+        label: '咨询策划'
+      }, {
+        value: '8',
+        label: '视频制作'
+      }],
       // 遮罩层
       loading: true,
       // 选中数组
