@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="85px">
-      <el-form-item label="项目负责人" prop="userId">
+      <!-- <el-form-item label="项目负责人" prop="userId">
         <el-select v-model="queryParams.userId" placeholder="请选择项目负责人" clearable size="small">
           <el-option
             v-for="(user,index) in uniqueProjectsByUserList"
@@ -10,7 +10,7 @@
             :value="user.userId"
           />
         </el-select>
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item label="项目负责人部门" prop="deptId" label-width="115px">
         <el-select v-model="queryParams.deptId" placeholder="请选择项目负责人部门" clearable size="small">
           <el-option
@@ -40,6 +40,16 @@
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="是否已完成" prop="isComplete">
+          <el-select v-model="queryParams.isComplete" placeholder="请选择是否已完成">
+            <el-option
+              v-for="dict in isCompleteOptions"
+              :key="dict.dictValue"
+              :label="dict.dictLabel"
+              :value="parseInt(dict.dictValue)"
+            ></el-option>
+          </el-select>
+        </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -95,7 +105,7 @@
       </el-col> -->
 
 
-      <el-col :span="1.5">
+      <el-col :span="1.5" v-if="num">
         <el-button
           v-if="isAdmin"
           type="danger"
@@ -285,7 +295,7 @@
           <el-date-picker clearable size="small"
                           v-model="form.startTime"
                           type="date"
-                          value-format="yyyy-MM-dd"
+                          value-format="yyyy-MM-dd HH:mm:ss"
                           placeholder="选择项目开始时间">
           </el-date-picker>
         </el-form-item>
@@ -293,7 +303,7 @@
           <el-date-picker clearable size="small"
                           v-model="form.endTime"
                           type="date"
-                          value-format="yyyy-MM-dd"
+                          value-format="yyyy-MM-dd HH:mm:ss"
                           placeholder="选择项目结束时间">
           </el-date-picker>
         </el-form-item>
@@ -427,6 +437,16 @@
             </el-radio>
           </el-radio-group>
         </el-form-item>
+        <el-form-item label="是否已完成" prop="isComplete">
+          <el-select v-model="form.isComplete" placeholder="请选择是否已完成">
+            <el-option
+              v-for="dict in isCompleteOptions"
+              :key="dict.dictValue"
+              :label="dict.dictLabel"
+              :value="parseInt(dict.dictValue)"
+            ></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="是否已支付" prop="isPayment">
           <el-radio v-if="form.isPayment === 0">
             未支付
@@ -435,6 +455,7 @@
             已支付
           </el-radio>
         </el-form-item>
+
         <el-form-item label="图片" prop="imgUrl">
           <OaFileUpload :show-button="false" v-model="form.imgUrl"/>
         </el-form-item>
@@ -460,10 +481,10 @@
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="协同人" align="center" prop="collaboratorName"/>
-        <el-table-column label="协同人部门" align="center" prop="collaboratorDeptName" width="180"/>
+        <el-table-column label="参与人" align="center" prop="collaboratorName"/>
+        <el-table-column label="参与人部门" align="center" prop="collaboratorDeptName" width="180"/>
         <el-table-column label="紧急程度" align="center" prop="urgency" :formatter="urgencyFormat"/>
-        <el-table-column label="项目描述" align="center" prop="description"/>
+        <!-- <el-table-column label="项目描述" align="center" prop="description"/> -->
         <el-table-column label="项目开始时间" align="center" prop="startTime" width="150">
           <template slot-scope="scope">
             <span>{{ parseTime(scope.row.startTime, '{y}-{m}-{d}') }}</span>
@@ -474,9 +495,15 @@
             <span>{{ parseTime(scope.row.endTime, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="费用出处" align="center" prop="expenseSource"/>
+        <el-table-column label="项目周期 (天)" align="center" width="180">
+        <template slot-scope="scope">
+            {{ getDiffDay(scope.row.endTime, scope.row.startTime) }}
+          </template>
+        </el-table-column>
+        <!-- <el-table-column label="费用出处" align="center" prop="expenseSource" width="300"/> -->
         <el-table-column label="费用金额" align="center" prop="expenseAmount"/>
-        <el-table-column label="是否已支付" align="center" prop="isPayment" :formatter="isPaymentFormat"/>
+        <el-table-column label="是否已支付" align="center" prop="isPayment" :formatter="isPaymentFormat" width="100"/>
+        <el-table-column label="完成状态" align="center" prop="isComplete" :formatter="isCompleteFormat"/>
       </el-table>
     </el-dialog>
   </div>
@@ -597,6 +624,7 @@ export default {
         collaboratorId: null,
         userId: null,
         id: null,
+        queryParams: null,
       },
       editParams: {
         pageNum: 1,
@@ -676,6 +704,7 @@ export default {
     this.getDicts("sys_oa_complete").then(response => {
       this.isCompleteOptions = response.data;
     });
+    this.queryParams.userId = ''
   },
   methods: {
     //计算日期间隔天数

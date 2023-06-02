@@ -129,7 +129,7 @@
 
     <!-- 添加或修改已办对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="150px">
+      <el-form ref="form" disabled :model="form" :rules="rules" label-width="150px">
         <el-form-item label="负责人名称" prop="nickName">
           <el-input v-model="form.nickName"/>
         </el-form-item>
@@ -223,6 +223,16 @@
             已支付
           </el-radio>
         </el-form-item>
+        <el-form-item label="是否已完成" prop="isComplete">
+          <el-select v-model="form.isComplete" placeholder="请选择是否已完成">
+            <el-option
+              v-for="dict in isCompleteOptions"
+              :key="dict.dictValue"
+              :label="dict.dictLabel"
+              :value="parseInt(dict.dictValue)"
+            ></el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="cancel">关 闭</el-button>
@@ -289,24 +299,20 @@ export default {
       isPaymentOptions: [],
       // 逻辑删除字典
       isDeleteOptions: [],
+      //完成状态字典
+      isCompleteOptions: [],
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
         id: null,
         name: null,
-        isPayment: 0,
         userId: null, // 获取当前登录的用户 ID
+        isComplete: 0,
+        isComplete01: 1,
       },
       paymentParams: {
         id: null,
-      },
-      taskParams: {
-        pageNum: 1,
-        pageSize: 10,
-        userId: null,
-        isComplete: 0,
-        isComplete01: 1,
       },
       projectInfo: {
         id: null,
@@ -327,6 +333,9 @@ export default {
     this.getDicts("sys_status").then(response => {
       this.isDeleteOptions = response.data;
     });
+    this.getDicts("sys_oa_complete").then(response => {
+      this.isCompleteOptions = response.data;
+    });
   },
   methods: {
     //计算日期间隔天数
@@ -345,11 +354,11 @@ export default {
     /** 查询待办列表 */
     getList() {
       this.loading = true;
-      this.taskParams.userId = this.userInfo.userId;
+      this.queryParams.userId = this.userInfo.userId;
       if (this.userInfo.admin) {
-        this.taskParams.userId = null;
+        this.queryParams.userId = null;
       }
-      listTask(this.taskParams).then(response => {
+      listTask(this.queryParams).then(response => {
         this.taskList = response.rows;
         this.total = response.total;
         this.loading = false;
@@ -358,6 +367,10 @@ export default {
     // 逻辑删除字典翻译
     isDeleteFormat(row, column) {
       return this.selectDictLabel(this.isDeleteOptions, row.isDelete);
+    },
+    // 完成状态字典翻译
+    isCompleteFormat(row, column) {
+      return this.selectDictLabel(this.isCompleteOptions, row.isComplete);
     },
     // 取消按钮
     cancel() {

@@ -71,22 +71,22 @@
     <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="150px">
         <el-form-item label="负责人名称" prop="nickName">
-          <el-input v-model="form.nickName"/>
+          <el-input v-model="form.nickName" disabled/>
         </el-form-item>
         <el-form-item label="负责人部门名称" prop="deptName">
-          <el-input v-model="form.deptName"/>
+          <el-input v-model="form.deptName" disabled/>
         </el-form-item>
         <el-form-item label="项目名称" prop="name">
-          <el-input v-model="form.name"/>
+          <el-input v-model="form.name" disabled/>
         </el-form-item>
         <el-form-item label="参与人" prop="collaboratorName">
-          <el-input v-model="form.collaboratorName"/>
+          <el-input v-model="form.collaboratorName" disabled/>
         </el-form-item>
         <el-form-item label="参与人部门" prop="collaboratorName">
-          <el-input v-model="form.collaboratorDeptName"/>
+          <el-input v-model="form.collaboratorDeptName" disabled/>
         </el-form-item>
         <el-form-item label="项目分类" prop="projectCategory">
-          <el-select v-model="form.projectCategory" placeholder="请选择项目分类">
+          <el-select disabled v-model="form.projectCategory" placeholder="请选择项目分类">
             <el-option
               v-for="item in options"
               :key="item.value"
@@ -96,31 +96,31 @@
           </el-select>
         </el-form-item>
         <el-form-item label="客户部门" prop="customerDepartmentName">
-          <el-input v-model="form.customerDepartmentName" placeholder="请输入客户部门名称"/>
+          <el-input v-model="form.customerDepartmentName" placeholder="请输入客户部门名称" disabled/>
         </el-form-item>
         <el-form-item label="客户姓名" prop="customerContactPerson">
-          <el-input v-model="form.customerContactPerson" placeholder="客户姓名"/>
+          <el-input v-model="form.customerContactPerson" placeholder="客户姓名" disabled/>
         </el-form-item>
         <el-form-item label="客户手机号" prop="customerContactPhone">
-          <el-input v-model="form.customerContactPhone" placeholder="客户手机号"/>
+          <el-input v-model="form.customerContactPhone" placeholder="客户手机号" disabled/>
         </el-form-item>
         <el-form-item label="供应商公司名称" prop="supplierName">
-          <el-input v-model="form.supplierName" placeholder="供应商公司名称"/>
+          <el-input v-model="form.supplierName" placeholder="供应商公司名称" disabled/>
         </el-form-item>
         <el-form-item label="供应商联系人" prop="supplierContactPerson">
-          <el-input v-model="form.supplierContactPerson" placeholder="供应商联系人"/>
+          <el-input v-model="form.supplierContactPerson" placeholder="供应商联系人" disabled/>
         </el-form-item>
         <el-form-item label="联系人手机号" prop="supplierContactPhone">
-          <el-input v-model="form.supplierContactPhone" placeholder="联系人手机号"/>
+          <el-input v-model="form.supplierContactPhone" placeholder="联系人手机号" disabled/>
         </el-form-item>
         <el-form-item label="供应物资名称" prop="materialName">
-          <el-input v-model="form.materialName" placeholder="供应物资名称"/>
+          <el-input v-model="form.materialName" placeholder="供应物资名称" disabled/>
         </el-form-item>
         <el-form-item label="供应物资数量" prop="materialQuantity">
-          <el-input v-model="form.materialQuantity" placeholder="供应物资数量"/>
+          <el-input v-model="form.materialQuantity" placeholder="供应物资数量" disabled/>
         </el-form-item>
         <el-form-item label="供应物资价格" prop="materialPrice">
-          <el-input v-model="form.materialPrice" placeholder="供应物资价格"/>
+          <el-input v-model="form.materialPrice" placeholder="供应物资价格" disabled/>
         </el-form-item>
         <!-- <el-form-item label="项目描述" prop="description">
           <el-input v-model="form.description" type="textarea"/>
@@ -129,6 +129,7 @@
           <el-date-picker clearable size="small"
                           v-model="form.startTime"
                           type="date"
+                          disabled
                           value-format="yyyy-MM-dd">
           </el-date-picker>
         </el-form-item>
@@ -136,17 +137,18 @@
           <el-date-picker clearable size="small"
                           v-model="form.endTime"
                           type="date"
+                          disabled
                           value-format="yyyy-MM-dd">
           </el-date-picker>
         </el-form-item>
         <el-form-item label="费用出处" prop="expenseSource">
-          <el-input v-model="form.expenseSource" type="textarea"/>
+          <el-input v-model="form.expenseSource" type="textarea" disabled/>
         </el-form-item>
         <el-form-item label="费用金额" prop="expenseAmount">
-          <el-input v-model="form.expenseAmount"/>
+          <el-input v-model="form.expenseAmount" disabled/>
         </el-form-item>
         <el-form-item label="是否第一次接触">
-          <el-radio-group v-model="form.firstContact">
+          <el-radio-group v-model="form.firstContact" disabled>
             <el-radio :label="0">
               是
             </el-radio>
@@ -162,6 +164,16 @@
           <el-radio v-if="form.isPayment === 1">
             已支付
           </el-radio>
+        </el-form-item>
+        <el-form-item label="是否已完成" prop="isComplete">
+          <el-select v-model="form.isComplete" placeholder="请选择是否已完成" disabled>
+            <el-option
+              v-for="dict in isCompleteOptions"
+              :key="dict.dictValue"
+              :label="dict.dictLabel"
+              :value="parseInt(dict.dictValue)"
+            ></el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="项目图片" prop="imgUrl">
           <OaFileUpload :show-button="true" v-model="form.imgUrl" @delete="handleDeleteImg"
@@ -243,19 +255,15 @@ export default {
       open: false,
       // 逻辑删除字典
       isDeleteOptions: [],
+      //完成状态字典
+      isCompleteOptions: [],
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
         id: null,
         name: null,
-        isPayment: 1,
         userId: null, // 获取当前登录的用户 ID
-      },
-      completedParams: {
-        pageNum: 1,
-        pageSize: 10,
-        userId: null,
         isComplete: 2,
       },
       projectInfo: {
@@ -274,6 +282,9 @@ export default {
     this.getList();
     this.getDicts("sys_status").then(response => {
       this.isDeleteOptions = response.data;
+    });
+    this.getDicts("sys_oa_complete").then(response => {
+      this.isCompleteOptions = response.data;
     });
   },
   methods: {
@@ -335,11 +346,11 @@ export default {
     /** 查询已办列表 */
     getList() {
       this.loading = true;
-      this.completedParams.userId = this.userInfo.userId;
+      this.queryParams.userId = this.userInfo.userId;
       if (this.userInfo.admin) {
-        this.completedParams.userId = null;
+        this.queryParams.userId = null;
       }
-      listTask(this.completedParams).then(response => {
+      listTask(this.queryParams).then(response => {
         this.completedList = response.rows;
         this.total = response.total;
         this.loading = false;
@@ -348,6 +359,10 @@ export default {
     // 逻辑删除字典翻译
     isDeleteFormat(row, column) {
       return this.selectDictLabel(this.isDeleteOptions, row.isDelete);
+    },
+    // 完成状态字典翻译
+    isCompleteFormat(row, column) {
+      return this.selectDictLabel(this.isCompleteOptions, row.isComplete);
     },
     // 取消按钮
     cancel() {
