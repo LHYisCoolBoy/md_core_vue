@@ -9,7 +9,7 @@ export function listProjects(query) {
   })
 }
 
-// 查询与当前用户有关系的项目信息
+// 查询与当前用户有关系的项目信息的数量
 export function getMessageByUserIdCount(userId) {
   return request({
     url: '/system/projects/selectByCollaboratorIdCount',

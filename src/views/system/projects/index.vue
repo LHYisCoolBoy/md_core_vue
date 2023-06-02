@@ -138,14 +138,14 @@
           <span>{{ parseTime(scope.row.endTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-     <el-table-column label="项目周期 (天)" align="center" width="180">
+      <el-table-column label="项目周期 (天)" align="center" width="180">
         <template slot-scope="scope">
-          {{getDiffDay(scope.row.endTime,scope.row.startTime)}}
+          {{ getDiffDay(scope.row.endTime, scope.row.startTime) }}
         </template>
       </el-table-column>
       <el-table-column label="费用金额" align="center" prop="expenseAmount"/>
       <el-table-column label="是否已支付" align="center" prop="isPayment" :formatter="isPaymentFormat"/>
-       <el-table-column label="完成状态" align="center" prop="isComplete" :formatter="isCompleteFormat"/>
+      <el-table-column label="完成状态" align="center" prop="isComplete" :formatter="isCompleteFormat"/>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -274,11 +274,12 @@
         <!-- <el-form-item label="项目描述" prop="description">
           <el-input v-model="form.description" type="textarea" placeholder="请输入对于项目整体描述"/>
         </el-form-item> -->
-         <el-form-item label="项目难点预测" prop="difficultyForecast">
+        <el-form-item label="项目难点预测" prop="difficultyForecast">
           <el-input v-model="form.difficultyForecast" type="textarea" placeholder="请输入项目预估空难点"/>
         </el-form-item>
         <el-form-item label="总经理协调推进问题" prop="managerCooperationRequired">
-          <el-input v-model="form.managerCooperationRequired" type="textarea" placeholder="请输入需要总经理协调推进问题"/>
+          <el-input v-model="form.managerCooperationRequired" type="textarea"
+                    placeholder="请输入需要总经理协调推进问题"/>
         </el-form-item>
         <el-form-item label="项目开始时间" prop="startTime">
           <el-date-picker clearable size="small"
@@ -324,12 +325,12 @@
         </el-form-item>
         <el-form-item label="是否已完成" prop="isComplete">
           <el-select v-model="form.isComplete" placeholder="请选择是否已完成">
-          <el-option
-          v-for="dict in isCompleteOptions"
-          :key="dict.dictValue"
-          :label="dict.dictLabel"
-          :value="parseInt(dict.dictValue)"
-          ></el-option>
+            <el-option
+              v-for="dict in isCompleteOptions"
+              :key="dict.dictValue"
+              :label="dict.dictLabel"
+              :value="parseInt(dict.dictValue)"
+            ></el-option>
           </el-select>
         </el-form-item>
       </el-form>
@@ -366,7 +367,7 @@
             </el-option>
           </el-select>
         </el-form-item>
-         <el-form-item label="客户部门" prop="customerDepartmentName">
+        <el-form-item label="客户部门" prop="customerDepartmentName">
           <el-input v-model="form.customerDepartmentName" placeholder="请输入客户部门名称"/>
         </el-form-item>
         <el-form-item label="客户姓名" prop="customerContactPerson">
@@ -477,7 +478,7 @@
         <el-table-column label="费用金额" align="center" prop="expenseAmount"/>
         <el-table-column label="是否已支付" align="center" prop="isPayment" :formatter="isPaymentFormat"/>
       </el-table>
-    </el-dialog> 
+    </el-dialog>
   </div>
 </template>
 
@@ -605,6 +606,17 @@ export default {
       editDeptId: {
         deptId: null
       },
+      // 消息按钮参数
+      messageParams: {
+        userId: null,
+        pageNum: 1,
+        pageSize: 10,
+      },
+      projectInfo: {
+        id: null,
+        pageNum: 1,
+        pageSize: 10,
+      },
       // 表单参数
       form: {},
       // 表单校验
@@ -616,6 +628,8 @@ export default {
       listProjectsByDeptId: [],
       num: null,
       isAdmin: true,
+      // 管理员白名单，可以在工作台查看全部项目信息
+      whiteList: [1, 102, 103, 106],
       options: [{
         value: '0',
         label: '技术开发'
@@ -664,17 +678,17 @@ export default {
     });
   },
   methods: {
-      //计算日期间隔天数
-     getDiffDay(date_1, date_2) {
-        // 计算两个日期之间的差值
-        let totalDays, diffDate
-        let myDate_1 = Date.parse(date_1)
-        let myDate_2 = Date.parse(date_2)
-        // 将两个日期都转换为毫秒格式，然后做差
-        diffDate = Math.abs(myDate_1 - myDate_2) // 取相差毫秒数的绝对值
-        totalDays = Math.floor(diffDate / (1000 * 3600 * 24)) // 向下取整
-        // console.log(totalDays)
-        return totalDays // 相差的天数
+    //计算日期间隔天数
+    getDiffDay(date_1, date_2) {
+      // 计算两个日期之间的差值
+      let totalDays, diffDate
+      let myDate_1 = Date.parse(date_1)
+      let myDate_2 = Date.parse(date_2)
+      // 将两个日期都转换为毫秒格式，然后做差
+      diffDate = Math.abs(myDate_1 - myDate_2) // 取相差毫秒数的绝对值
+      totalDays = Math.floor(diffDate / (1000 * 3600 * 24)) // 向下取整
+      // console.log(totalDays)
+      return totalDays // 相差的天数
     },
     parseTime,
     // 更新 UserId 数据
@@ -701,7 +715,12 @@ export default {
     /** 查询项目列表 */
     getList() {
       this.loading = true;
-      this.queryParams.id = null;
+      this.queryParams.userId = this.userInfo.userId;
+      console.log(this.userInfo.userId,"this.userInfo.userId")
+      if (this.whiteList.includes(this.userInfo.userId)) {
+        this.queryParams.userId = null;
+      }
+      console.log(this.queryParams.userId, "this.queryParams.userId")
       listTask(this.queryParams).then(response => {
         this.projectsList = response.rows;
         this.total = response.total;
@@ -789,8 +808,8 @@ export default {
     handleSelectByProjectId(row) {
       this.reset();
       const id = row.id || this.ids
-      this.queryParams.id = id;
-      listTask(this.queryParams).then(response => {
+      this.projectInfo.id = id;
+      listTask(this.projectInfo).then(response => {
         this.form = response.rows[0];
         this.open01 = true;
         this.title01 = "项目信息";
@@ -827,9 +846,9 @@ export default {
     /** 消息按钮 */
     handleShowMessage() {
       console.log("消息按钮")
-      this.queryParams.isComplete = 0;
-      this.queryParams.userId = this.$store.getters.userInfo.userId;
-      listByCollaboratorId(this.queryParams).then(res => {
+      this.messageParams.userId = this.userInfo.userId;
+      console.log(this.messageParams, "this.messageParams");
+      listByCollaboratorId(this.messageParams).then(res => {
         console.log(res, "res");
         this.messageProjectsList = res.rows;
         this.open02 = true;

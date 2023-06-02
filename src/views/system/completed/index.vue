@@ -52,7 +52,7 @@
       </el-table-column>
       <el-table-column label="项目周期 (天)" align="center" width="180">
         <template slot-scope="scope">
-          {{getDiffDay(scope.row.endTime,scope.row.startTime)}}
+          {{ getDiffDay(scope.row.endTime, scope.row.startTime) }}
         </template>
       </el-table-column>
       <!-- <el-table-column label="费用出处" align="center" prop="expenseSource"/> -->
@@ -95,7 +95,7 @@
             </el-option>
           </el-select>
         </el-form-item>
-          <el-form-item label="客户部门" prop="customerDepartmentName">
+        <el-form-item label="客户部门" prop="customerDepartmentName">
           <el-input v-model="form.customerDepartmentName" placeholder="请输入客户部门名称"/>
         </el-form-item>
         <el-form-item label="客户姓名" prop="customerContactPerson">
@@ -188,9 +188,7 @@ import {updateCompleted} from "@/api/system/completed";
 import {listTask} from "@/api/system/task";
 import {parseTime} from "../../../utils/jeethink";
 import ImageUpload from "@/components/ImageUpload/index.vue";
-import {getToken} from "@/utils/auth";
 import OaFileUpload from "@/components/OaFileUpload/index.vue";
-import {compile} from "vue-template-compiler";
 
 export default {
   name: "Completed",
@@ -254,10 +252,22 @@ export default {
         isPayment: 1,
         userId: null, // 获取当前登录的用户 ID
       },
+      completedParams: {
+        pageNum: 1,
+        pageSize: 10,
+        userId: null,
+        isComplete: 2,
+      },
+      projectInfo: {
+        id: null,
+        pageNum: 1,
+        pageSize: 10,
+      },
       // 表单参数
       form: {},
       // 表单校验
       rules: {},
+      userInfo: this.$store.getters.userInfo,
     };
   },
   created() {
@@ -268,16 +278,16 @@ export default {
   },
   methods: {
     //计算日期间隔天数
-     getDiffDay(date_1, date_2) {
-        // 计算两个日期之间的差值
-        let totalDays, diffDate
-        let myDate_1 = Date.parse(date_1)
-        let myDate_2 = Date.parse(date_2)
-        // 将两个日期都转换为毫秒格式，然后做差
-        diffDate = Math.abs(myDate_1 - myDate_2) // 取相差毫秒数的绝对值
-        totalDays = Math.floor(diffDate / (1000 * 3600 * 24)) // 向下取整
-        // console.log(totalDays)
-        return totalDays // 相差的天数
+    getDiffDay(date_1, date_2) {
+      // 计算两个日期之间的差值
+      let totalDays, diffDate
+      let myDate_1 = Date.parse(date_1)
+      let myDate_2 = Date.parse(date_2)
+      // 将两个日期都转换为毫秒格式，然后做差
+      diffDate = Math.abs(myDate_1 - myDate_2) // 取相差毫秒数的绝对值
+      totalDays = Math.floor(diffDate / (1000 * 3600 * 24)) // 向下取整
+      // console.log(totalDays)
+      return totalDays // 相差的天数
     },
     parseTime,
     // 删除成功回调
@@ -325,8 +335,11 @@ export default {
     /** 查询已办列表 */
     getList() {
       this.loading = true;
-      this.queryParams.id = null;
-      listTask(this.queryParams).then(response => {
+      this.completedParams.userId = this.userInfo.userId;
+      if (this.userInfo.admin) {
+        this.completedParams.userId = null;
+      }
+      listTask(this.completedParams).then(response => {
         this.completedList = response.rows;
         this.total = response.total;
         this.loading = false;
@@ -388,8 +401,8 @@ export default {
     handleSelectByProjectId(row) {
       this.reset();
       const id = row.id || this.ids
-      this.queryParams.id = id;
-      listTask(this.queryParams).then(response => {
+      this.projectInfo.id = id;
+      listTask(this.projectInfo).then(response => {
         this.form = response.rows[0];
         this.open = true;
         this.title = "项目信息";
