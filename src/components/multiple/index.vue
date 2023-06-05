@@ -1,169 +1,321 @@
 <template>
-  <div class="upload-file">
-    <el-upload
-      :action="uploadFileUrl"
-      :before-upload="handleBeforeUpload"
-      :file-list="fileList"
-      :on-error="handleUploadError"
-      :on-exceed="handleExceed"
-      :on-success="handleUploadSuccess"
-      :show-file-list="false"
-      :headers="headers"
-      class="upload-file-uploader"
-      ref="upload"
-    >
-      <!-- 上传按钮 -->
-      <el-button size="mini" type="primary">选取文件</el-button>
-      <!-- 上传提示 -->
-      <div class="el-upload__tip" slot="tip" v-if="showTip">
-        请上传
-        <template v-if="fileSize"> 大小不超过 <b style="color: #f56c6c">{{ fileSize }}MB</b> </template>
-        <template v-if="fileType"> 格式为 <b style="color: #f56c6c">{{ fileType.join("/") }}</b> </template>
-        的文件
-      </div>
-    </el-upload>
-
-    <!-- 文件列表 -->
-    <transition-group class="upload-file-list el-upload-list el-upload-list--text" name="el-fade-in-linear" tag="ul">
-      <li :key="file.uid" class="el-upload-list__item ele-upload-list__item-content" v-for="(file, index) in list">
-        <el-link :href="file.response.data.url" :underline="false" target="_blank">
-          <span class="el-icon-document"> {{ file.response.data.name }} </span>
-        </el-link>
-        <div class="ele-upload-list__item-content-action">
-          <el-link :underline="false" @click="handleDelete(index)" type="danger">删除</el-link>
-        </div>
-      </li>
-    </transition-group>
-  </div>
+  <div>
+  <!-- on-preview 点击文件列表中已上传的文件时的钩子 -->
+  <!-- http-request 覆盖默认的上传行为，可以自定义上传的实现 -->
+  <!-- limit  最大允许上传个数 -->
+  <!-- before-upload  上传文件之前的钩子，参数为上传的文件，若返回 false 或者返回 Promise 且被 reject，则停止上传。 -->
+  <!-- accept 接受上传的文件类型（thumbnail-mode 模式下此参数无效） -->
+  <!-- multiple 是否支持多选文件 -->
+  <!-- on-change  文件状态改变时的钩子，添加文件、上传成功和上传失败时都会被调用 -->
+  <!-- on-remove  文件列表移除文件时的钩子 -->
+  <!-- file-list  上传的文件列表, 例如: [{name: 'food.jpg', url: 'https://xxx.cdn.com/xxx.jpg'}] -->
+  <!-- on-exceed  文件超出个数限制时的钩子 -->
+  <!-- auto-upload  是否在选取文件后立即进行上传 -->
+  <!-- action 必选参数，上传的地址  例如  action="https://jsonplaceholder.typicode.com/posts/"-->
+  <el-upload
+    drag
+    multiple
+    :auto-upload="true"
+    :http-request="checkedFile"
+    :before-remove="removeFile"
+    :limit="10"
+    action=""
+  >
+    <i class="el-icon-upload"></i>
+    <div class="el-upload__text">
+      将文件拖到此处，或
+      <em>点击上传</em>
+    </div>
+  </el-upload>
+  <el-progress type="circle" :percentage="progress" class="progress" v-if="showProgress"></el-progress>
+</div>
 </template>
-
-<script>
-import { getToken } from "@/utils/auth";
-
+  <script>
+import axios from "axios";
+import SparkMD5 from "spark-md5";
+import {upFile, mergeFile} from "@/api/system/projects";
 export default {
-  props: {
-    // 值
-    value: [String, Object, Array],
-    // 大小限制(MB)
-    fileSize: {
-      type: Number,
-      default: 5,
-    },
-    // 文件类型, 例如['png', 'jpg', 'jpeg']
-    fileType: {
-      type: Array,
-      // <!--"doc", "xls", "ppt", "txt", "pdf",-->
-      default: () => ["avi","rmvb","mp4","jpg","jpeg","png","gif"],
-    },
-    // 是否显示提示
-    isShowTip: {
-      type: Boolean,
-      default: true
-    }
-  },
   data() {
     return {
-      uploadFileUrl: process.env.VUE_APP_BASE_API + "/file/upload", // 上传的图片服务器地址
-      headers: {
-        Authorization: "Bearer " + getToken(),
-      },
-      fileList: [],
-      lists: [],
+      maxSize: 20 * 1024 * 1024 * 1024, // 上传最大文件限制  最小单位是b
+      multiUploadSize: 20 * 1024 * 1024, // 大于这个大小的文件使用分块上传(后端可以支持断点续传)  100mb
+      eachSize: 20 * 1024 * 1024, // 每块文件大小   100mb
+      requestCancelQueue: [], // 请求方法队列（调用取消上传
+      url: "/tools/upload_test/",
+       //上传进度
+      progress: 0,
+      showProgress: false,
+      // 每上传一块的进度
+      eachProgress: 0,
+      // 总共有多少块。断点续传使用
+      chunksKeep:0,
+      // 切割后的文件数组
+      fileChunksKeep:[],
+      // 这个文件，断点续传
+      fileKeep:null
     };
   },
-  computed: {
-    // 是否显示提示
-    showTip() {
-      return this.isShowTip && (this.fileType || this.fileSize);
-    },
-    // 列表
-    list() {
-      let temp = 1;
-      if (this.value) {
-        return this.lists
-      } else {
-        this.fileList = [];
-        return [];
-      }
-    },
+  mounted() {
   },
   methods: {
-    // 上传前校检格式和大小
-    handleBeforeUpload(file) {
-      // 校检文件类型
-      if (this.fileType) {
-        let fileExtension = "";
-        if (file.name.lastIndexOf(".") > -1) {
-          fileExtension = file.name.slice(file.name.lastIndexOf(".") + 1);
-        }
-        const isTypeOk = this.fileType.some((type) => {
-          if (file.type.indexOf(type) > -1) return true;
-          if (fileExtension && fileExtension.indexOf(type) > -1) return true;
-          return false;
+    async checkedFile(options) {
+      console.log(options);
+      const {
+        maxSize,
+        multiUploadSize,
+        getSize,
+        splitUpload,
+        singleUpload
+      } = this; // 解构赋值
+      const { file, onProgress, onSuccess, onError } = options; // 解构赋值
+      if (file.size > maxSize) {
+        return this.$message({
+          message: `您选择的文件大于${getSize(maxSize)}`,
+          type: "error"
         });
-        if (!isTypeOk) {
-          this.$message.error(`文件格式不正确, 请上传${this.fileType.join("/")}格式文件!`);
-          return false;
-        }
       }
-      // 校检文件大小
-      if (this.fileSize) {
-        const isLt = file.size / 1024 / 1024 < this.fileSize;
-        if (!isLt) {
-          this.$message.error(`上传文件大小不能超过 ${this.fileSize} MB!`);
-          return false;
-        }
+      this.fileKeep = file
+      const uploadFunc =
+        file.size > multiUploadSize ? splitUpload : singleUpload; // 选择上传方式
+      try {
+        await uploadFunc(file, onProgress);
+        this.$message({
+          message: "上传成功",
+          type: "success"
+        });
+        this.showProgress = false;
+        this.progress = 0;
+        onSuccess();
+      } catch (e) {
+        console.error(e);
+        this.$message({
+          message: e.message,
+          type: "error"
+        });
+        this.showProgress = false;
+        this.progress = 0;
+        onError();
       }
+      const prom = new Promise((resolve, reject) => {}); // 上传后返回一个promise
+      prom.abort = () => {};
+      return prom;
+    },
+    // 格式化文件大小显示文字
+    getSize(size) {
+      return size > 1024
+        ? size / 1024 > 1024
+          ? size / (1024 * 1024) > 1024
+            ? (size / (1024 * 1024 * 1024)).toFixed(2) + "GB"
+            : (size / (1024 * 1024)).toFixed(2) + "MB"
+          : (size / 1024).toFixed(2) + "KB"
+        : size.toFixed(2) + "B";
+    },
+    // 单文件直接上传
+   async singleUpload(file, onProgress) {
+      await this.postFile(
+        { file, uid: file.uid, fileName: file.fileName ,chunk:0},
+        onProgress
+      );
+      var spark = new SparkMD5.ArrayBuffer();
+      spark.append(file);
+      var md5 = spark.end();
+      console.log(md5);
+    },
+    // 大文件分块上传
+    splitUpload(file, onProgress) {
+      console.log('file11')
+      console.log(file)
+      return new Promise(async (resolve, reject) => {
+        try {
+          const { eachSize } = this;
+          const chunks = Math.ceil(file.size / eachSize);
+          this.chunksKeep = chunks
+          const fileChunks = await this.splitFile(file, eachSize, chunks);
+          this.fileChunksKeep = fileChunks
+          console.log('fileChunks,文件数组切割后')
+          console.log(fileChunks)
+          //判断每上传一个文件，进度条涨多少,保留两位小数
+          
+          this.eachProgress = parseInt(Math.floor(100 / chunks * 100) / 100);
+ 
+          this.showProgress = true;
+          let currentChunk = 0;
+          for (let i = 0; i < fileChunks.length; i++) {
+            // 服务端检测已经上传到第currentChunk块了，那就直接跳到第currentChunk块，实现断点续传
+            console.log(currentChunk, i);
+            // 此时需要判断进度条
+ 
+            if (Number(currentChunk) === i) {
+              // 每块上传完后则返回需要提交的下一块的index
+               await this.postFile(
+                {
+                  chunked: true,
+                  chunk: i,
+                  chunks,
+                  eachSize,
+                  fileName: file.name,
+                  fullSize: file.size,
+                  uid: file.uid,
+                  file: fileChunks[i]
+                },
+                onProgress
+              );
+              currentChunk++
+ 
+              // 上传完一块后，进度条增加
+              this.progress += this.eachProgress;
+              // 不能超过100
+              this.progress = this.progress > 100 ? 100 : this.progress;
+            }
+          }
+          var spark = new SparkMD5.ArrayBuffer();
+          spark.append(file);
+          var md5 = spark.end();
+          console.log(md5);
+        //   const isValidate = await this.validateFile({
+        //     chunks: fileChunks.length,
+        //     // chunk: fileChunks.length,
+        //     fileName: file.name,
+        //     uid: file.uid,
+        //     md5:md5,
+        //     // task_id:file.uid
+        //   });
+          // if (!isValidate) {
+          //   throw new Error("文件校验异常");
+          // }
+          resolve();
+        } catch (e) {
+          reject(e);
+        }
+      });
+    },
+    againSplitUpload(file, array) {
+      console.log('file,array')
+      console.log(file)
+      console.log(array)
+      return new Promise(async (resolve, reject) => {
+        try {
+          const { eachSize , fileKeep } = this;
+          const chunks = this.chunksKeep
+          const fileChunks = this.fileChunksKeep
+          this.showProgress = true;
+          // let currentChunk = 0;
+          for (let i = 0; i < array.length; i++) {
+            // 服务端检测已经上传到第currentChunk块了，那就直接跳到第currentChunk块，实现断点续传
+            // console.log(currentChunk, i);
+            // 此时需要判断进度条
+              // 每块上传完后则返回需要提交的下一块的index
+               await this.postFile(
+                {
+                  chunked: true,
+                  chunk: array[i],
+                  chunks,
+                  fileName: file.fileName,
+                  fullSize: fileKeep.size,
+                  uid: file.uid,
+                  file: fileChunks[array[i]]
+                },
+              );
+              // currentChunk++
+ 
+              // 上传完一块后，进度条增加
+              // this.progress += this.eachProgress;
+              // 不能超过100
+              this.progress = this.progress > 100 ? 100 : this.progress;
+          }
+          var spark = new SparkMD5.ArrayBuffer();
+          spark.append(fileKeep);
+          var md5 = spark.end();
+          console.log(md5);
+        //   const isValidate = await this.validateFile({
+        //     chunks: fileChunks.length,
+        //     // chunk: fileChunks.length,
+        //     fileName: file.fileName,
+        //     uid: file.uid,
+        //     md5:md5,
+        //     // task_id:file.uid
+        //   });
+          // if (!isValidate) {
+          //   throw new Error("文件校验异常");
+          // }
+          resolve();
+        } catch (e) {
+          reject(e);
+        }
+      });
+    },
+    // 文件分块,利用Array.prototype.slice方法
+    splitFile(file, eachSize, chunks) {
+      return new Promise((resolve, reject) => {
+        try {
+          setTimeout(() => {
+            const fileChunk = [];
+            for (let chunk = 0; chunks > 0; chunks--) {
+              fileChunk.push(file.slice(chunk, chunk + eachSize));
+              chunk += eachSize;
+            }
+            resolve(fileChunk);
+          }, 0);
+        } catch (e) {
+          console.error(e);
+          reject(new Error("文件切块发生错误"));
+        }
+      });
+    },
+    removeFile(file) {
+      this.requestCancelQueue[file.uid]();
+      delete this.requestCancelQueue[file.uid];
       return true;
     },
-    // 文件个数超出
-    handleExceed(file, fileList){
-      if(this.fileList.length>10){
-         this.$message.warning("附件个数不能超过10个")
-      }
+    // 提交文件方法,将参数转换为FormData, 然后通过axios发起请求
+    postFile(param, onProgress) {
+      const formData = new FormData();
+      // for (let p in param) {
+        // formData.append(p, param[p]);
+      // }
+      formData.append('file', param.file)  //  改了
+      formData.append('guid',param.uid)
+      formData.append('chunk',param.chunk)
+      formData.append('deptId',this.$store.getters.userInfo.deptId)
+      formData.append('chunks',param.chunks)
+      console.log(param);
+      const { requestCancelQueue } = this;
+      const config = {
+        cancelToken: new axios.CancelToken(function executor(cancel) {
+          if (requestCancelQueue[param.uid]) {
+            requestCancelQueue[param.uid]();
+            delete requestCancelQueue[param.uid];
+          }
+          requestCancelQueue[param.uid] = cancel;
+        }),
+        onUploadProgress: e => {
+          if (param.chunked) {
+            e.percent = Number(
+              (
+                ((param.chunk * (param.eachSize - 1) + e.loaded) /
+                  param.fullSize) *
+                100
+              ).toFixed(2)
+            );
+          } else {
+            e.percent = Number(((e.loaded / e.total) * 100).toFixed(2));
+          }
+          onProgress(e);
+        }
+      };
+    //   return axios.post('/api/v1/tools/upload_test/', formData, config).then(rs => rs.data)
+       upFile(formData).then(rs => rs.data);
     },
-    // 上传失败
-    handleUploadError(err) {
-      this.$message.error("上传失败, 请重试");
-    },
-    // 上传成功回调
-    handleUploadSuccess(res, file, fileList) {
-      this.$message.success("上传成功");
-      this.lists = fileList
-      var obj = fileList.map((item,index)=>{
-        return item.response.data.url
-      })
-      this.$emit("input", obj.toString());
-    },
-    // 删除文件
-    handleDelete(index) {
-      this.fileList.splice(index, 1);
-      this.$emit("input", '');
-    },
-  },
-  created() {
-    this.fileList = this.list;
-  },
+  }
 };
 </script>
-
-<style scoped lang="scss">
-.upload-file-uploader {
-  margin-bottom: 5px;
-}
-.upload-file-list .el-upload-list__item {
-  border: 1px solid #e4e7ed;
-  line-height: 2;
-  margin-bottom: 10px;
-  position: relative;
-}
-.upload-file-list .ele-upload-list__item-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: inherit;
-}
-.ele-upload-list__item-content-action .el-link {
-  margin-right: 10px;
+<style scoped>
+.progress{
+  /* 在当前页面居中 */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* 宽度 */
 }
 </style>

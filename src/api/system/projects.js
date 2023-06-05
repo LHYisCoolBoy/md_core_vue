@@ -62,3 +62,21 @@ export function delProjects(id) {
     method: 'delete'
   })
 }
+
+// 网盘上传
+export function upFile(data) {
+  return request({
+    url: '/ydisk/upload',
+    method: 'post',
+    data: data
+  })
+}
+
+// 网盘切片上传整合
+export function mergeFile(data) {
+  return request({
+    url: '/ydisk/merge',
+    method: 'post',
+    data: data
+  })
+}
