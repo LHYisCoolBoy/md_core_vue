@@ -33,7 +33,7 @@
   <script>
 import axios from "axios";
 import SparkMD5 from "spark-md5";
-import {upFile, mergeFile} from "@/api/system/projects";
+// import {upFile, mergeFile} from "@/api/system/projects";
 export default {
   data() {
     return {
@@ -304,7 +304,16 @@ export default {
         }
       };
     //   return axios.post('/api/v1/tools/upload_test/', formData, config).then(rs => rs.data)
-       upFile(formData).then(rs => rs.data);
+    //    upFile(formData).then(rs => rs.data);
+    //    axios.post()
+       axios({
+            methods: 'post',
+            url: 'http://core.mdgp.cn/ydisk/upload',
+            data: formData
+        }).then(res=>{
+            console.log(res)
+            resolve();
+        })
     },
   }
 };
