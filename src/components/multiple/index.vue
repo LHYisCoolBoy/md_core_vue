@@ -33,7 +33,6 @@
   <script>
 import axios from "axios";
 import SparkMD5 from "spark-md5";
-// import {upFile, mergeFile} from "@/api/system/projects";
 export default {
   data() {
     return {
@@ -135,16 +134,16 @@ export default {
           console.log('fileChunks,文件数组切割后')
           console.log(fileChunks)
           //判断每上传一个文件，进度条涨多少,保留两位小数
-          
+
           this.eachProgress = parseInt(Math.floor(100 / chunks * 100) / 100);
- 
+
           this.showProgress = true;
           let currentChunk = 0;
           for (let i = 0; i < fileChunks.length; i++) {
             // 服务端检测已经上传到第currentChunk块了，那就直接跳到第currentChunk块，实现断点续传
             console.log(currentChunk, i);
             // 此时需要判断进度条
- 
+
             if (Number(currentChunk) === i) {
               // 每块上传完后则返回需要提交的下一块的index
                await this.postFile(
@@ -161,7 +160,7 @@ export default {
                 onProgress
               );
               currentChunk++
- 
+
               // 上传完一块后，进度条增加
               this.progress += this.eachProgress;
               // 不能超过100
@@ -172,17 +171,11 @@ export default {
           spark.append(file);
           var md5 = spark.end();
           console.log(md5);
-        //   const isValidate = await this.validateFile({
-        //     chunks: fileChunks.length,
-        //     // chunk: fileChunks.length,
-        //     fileName: file.name,
-        //     uid: file.uid,
-        //     md5:md5,
-        //     // task_id:file.uid
-        //   });
-          // if (!isValidate) {
-          //   throw new Error("文件校验异常");
-          // }
+          const formData = new FormData();
+          formData.append('deptId', this.$store.getters.userInfo.deptId)
+          formData.append('guid',file.uid)
+          formData.append('fileName',file.name)
+          axios.post('http://core.mdgp.cn/ydisk/merge', formData)
           resolve();
         } catch (e) {
           reject(e);
@@ -217,27 +210,16 @@ export default {
                 },
               );
               // currentChunk++
- 
               // 上传完一块后，进度条增加
-              // this.progress += this.eachProgress;
+              this.progress += this.eachProgress;
               // 不能超过100
               this.progress = this.progress > 100 ? 100 : this.progress;
           }
           var spark = new SparkMD5.ArrayBuffer();
           spark.append(fileKeep);
           var md5 = spark.end();
-          console.log(md5);
-        //   const isValidate = await this.validateFile({
-        //     chunks: fileChunks.length,
-        //     // chunk: fileChunks.length,
-        //     fileName: file.fileName,
-        //     uid: file.uid,
-        //     md5:md5,
-        //     // task_id:file.uid
-        //   });
-          // if (!isValidate) {
-          //   throw new Error("文件校验异常");
-          // }
+          console.log(md5,"aigdyuqgweuyqgweuyg");
+          axios.post('http://core.mdgp.cn/ydisk/merge', {guid:file.uid ,deptId : this.$store.getters.userInfo.deptId, fileName: file.fileName })
           resolve();
         } catch (e) {
           reject(e);
@@ -277,8 +259,11 @@ export default {
       formData.append('guid',param.uid)
       formData.append('chunk',param.chunk)
       formData.append('deptId',this.$store.getters.userInfo.deptId)
-      formData.append('chunks',param.chunks)
-      console.log(param);
+      if(param.chunk == 0){
+          formData.append('chunks',1)
+      }else{
+          formData.append('chunks',param.chunks)
+      }
       const { requestCancelQueue } = this;
       const config = {
         cancelToken: new axios.CancelToken(function executor(cancel) {
@@ -303,17 +288,7 @@ export default {
           onProgress(e);
         }
       };
-    //   return axios.post('/api/v1/tools/upload_test/', formData, config).then(rs => rs.data)
-    //    upFile(formData).then(rs => rs.data);
-    //    axios.post()
-       axios({
-            methods: 'post',
-            url: 'http://core.mdgp.cn/ydisk/upload',
-            data: formData
-        }).then(res=>{
-            console.log(res)
-            resolve();
-        })
+       return axios.post('http://core.mdgp.cn/ydisk/upload', formData)
     },
   }
 };
