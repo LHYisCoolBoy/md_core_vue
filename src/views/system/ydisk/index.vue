@@ -138,7 +138,7 @@
           <el-input v-model="form.name" placeholder="请输入项目名" />
         </el-form-item>
         <el-form-item label="文件地址">
-          <fileUpload/>
+          <fileUpload v-model="form.url"/>
         </el-form-item>
         <el-form-item label="上传时间
 " prop="time">
@@ -260,6 +260,7 @@ export default {
       this.reset();
       this.open = true;
       this.title = "上传新文件";
+      this.form.url = ''
     },
     /** 修改按钮操作 */
     handleUpdate(row) {

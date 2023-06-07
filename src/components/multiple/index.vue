@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="upload-file">
   <!-- on-preview 点击文件列表中已上传的文件时的钩子 -->
   <!-- http-request 覆盖默认的上传行为，可以自定义上传的实现 -->
   <!-- limit  最大允许上传个数 -->
@@ -18,8 +18,11 @@
     :auto-upload="true"
     :http-request="checkedFile"
     :before-remove="removeFile"
-    :limit="10"
+    :on-exceed="handleExceed"
+    :limit="1"
     action=""
+    :show-file-list="false"
+    class="upload-file-uploader"
   >
     <i class="el-icon-upload"></i>
     <div class="el-upload__text">
@@ -28,12 +31,44 @@
     </div>
   </el-upload>
   <el-progress type="circle" :percentage="progress" class="progress" v-if="showProgress"></el-progress>
+  <!-- 文件列表 -->
+    <transition-group class="upload-file-list el-upload-list el-upload-list--text" name="el-fade-in-linear" tag="ul">
+      <li :key="file.uid" class="el-upload-list__item ele-upload-list__item-content" v-for="(file, index) in list">
+        <el-link :href="file.url" :underline="false" target="_blank">
+          <span class="el-icon-document"> {{ getFileName(file.name) }} </span>
+        </el-link>
+        <div class="ele-upload-list__item-content-action">
+          <el-link :underline="false" @click="handleDelete(index)" type="danger">删除</el-link>
+        </div>
+      </li>
+    </transition-group>
 </div>
 </template>
   <script>
 import axios from "axios";
 import SparkMD5 from "spark-md5";
 export default {
+  props:{
+      // 值
+      value: [String, Object, Array],
+  },
+  computed:{
+      list() {
+      let temp = 1;
+      if (this.value) {
+        // 首先将值转为数组
+        const list = Array.isArray(this.value) ? this.value : [this.value];
+        // 然后将数组转为对象数组
+        return list.map((item) => {
+          if (typeof item === "string") {
+            item = { name: item, url: item };
+          }
+          item.uid = item.uid || new Date().getTime() + temp++;
+          return item;
+        });
+      }
+    },
+  },
   data() {
     return {
       maxSize: 20 * 1024 * 1024 * 1024, // 上传最大文件限制  最小单位是b
@@ -55,8 +90,25 @@ export default {
     };
   },
   mounted() {
+    console.log(this.fileChunksKeep,"fileChunksKeep")
   },
   methods: {
+    // 获取文件名称
+    getFileName(name) {
+      if (name.lastIndexOf("/") > -1) {
+        return name.slice(name.lastIndexOf("/") + 1).toLowerCase();
+      } else {
+        return "";
+      }
+    },
+    // 删除文件
+    handleDelete(index) {
+      this.$emit("input", '');
+    },
+    // 文件个数超出
+    handleExceed() {
+      this.$message.warning(`只允许上传单个文件`);
+    },
     async checkedFile(options) {
       console.log(options);
       const {
@@ -119,6 +171,13 @@ export default {
       spark.append(file);
       var md5 = spark.end();
       console.log(md5);
+      const formData = new FormData();
+      formData.append('deptId', this.$store.getters.userInfo.deptId)
+      formData.append('guid',file.uid)
+      formData.append('fileName',file.name)
+      axios.post('http://core.mdgp.cn/ydisk/merge', formData).then(res=>{
+            this.$emit("input", res.data.data)
+      })
     },
     // 大文件分块上传
     splitUpload(file, onProgress) {
@@ -175,7 +234,9 @@ export default {
           formData.append('deptId', this.$store.getters.userInfo.deptId)
           formData.append('guid',file.uid)
           formData.append('fileName',file.name)
-          axios.post('http://core.mdgp.cn/ydisk/merge', formData)
+          axios.post('http://core.mdgp.cn/ydisk/merge', formData).then(res=>{
+            this.$emit("input", res.data.data)
+          })
           resolve();
         } catch (e) {
           reject(e);
@@ -218,8 +279,6 @@ export default {
           var spark = new SparkMD5.ArrayBuffer();
           spark.append(fileKeep);
           var md5 = spark.end();
-          console.log(md5,"aigdyuqgweuyqgweuyg");
-          axios.post('http://core.mdgp.cn/ydisk/merge', {guid:file.uid ,deptId : this.$store.getters.userInfo.deptId, fileName: file.fileName })
           resolve();
         } catch (e) {
           reject(e);
@@ -293,7 +352,7 @@ export default {
   }
 };
 </script>
-<style scoped>
+<style scoped lang="scss">
 .progress{
   /* 在当前页面居中 */
   position: absolute;
@@ -302,4 +361,23 @@ export default {
   transform: translate(-50%, -50%);
   /* 宽度 */
 }
+.upload-file-uploader {
+  margin-bottom: 5px;
+}
+.upload-file-list .el-upload-list__item {
+  border: 1px solid #e4e7ed;
+  line-height: 2;
+  margin-bottom: 10px;
+  position: relative;
+}
+.upload-file-list .ele-upload-list__item-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: inherit;
+}
+.ele-upload-list__item-content-action .el-link {
+  margin-right: 10px;
+}
+
 </style>
