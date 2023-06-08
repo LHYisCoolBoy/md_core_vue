@@ -23,6 +23,7 @@
     action=""
     :show-file-list="false"
     class="upload-file-uploader"
+    ref="elUpload"
   >
     <i class="el-icon-upload"></i>
     <div class="el-upload__text">
@@ -55,6 +56,7 @@ export default {
   computed:{
       list() {
       let temp = 1;
+      console.log(this.value,"this.value")
       if (this.value) {
         // 首先将值转为数组
         const list = Array.isArray(this.value) ? this.value : [this.value];
@@ -66,6 +68,18 @@ export default {
           item.uid = item.uid || new Date().getTime() + temp++;
           return item;
         });
+      }else{
+        if(this.valueCopy.length){
+          const list = Array.isArray(this.valueCopy) ? this.valueCopy : [this.valueCopy];
+          // 然后将数组转为对象数组
+          return list.map((item) => {
+            if (typeof item === "string") {
+              item = { name: item, url: item };
+            }
+            item.uid = item.uid || new Date().getTime() + temp++;
+            return item;
+          });
+        }
       }
     },
   },
@@ -86,7 +100,8 @@ export default {
       // 切割后的文件数组
       fileChunksKeep:[],
       // 这个文件，断点续传
-      fileKeep:null
+      fileKeep:null,
+      valueCopy:[],
     };
   },
   mounted() {
@@ -104,6 +119,8 @@ export default {
     // 删除文件
     handleDelete(index) {
       this.$emit("input", '');
+      this.valueCopy = [];
+      this.$refs.elUpload.clearFiles()
     },
     // 文件个数超出
     handleExceed() {
@@ -177,6 +194,15 @@ export default {
       formData.append('fileName',file.name)
       axios.post('http://core.mdgp.cn/ydisk/merge', formData).then(res=>{
             this.$emit("input", res.data.data)
+              let some = this.valueCopy.some(item=>{
+                console.log(file,"fileChunks[array[i]]fileChunks[array[i]]")
+                return item.url == res.data.data
+              })
+              if(!some || this.valueCopy.length == 0){
+                console.log(res.data,"res.data")
+                console.log(res.data.data,'yquweyutqwyuetyquwteuyqtweyutqwuyetqyuetyuqwetyuqetu')
+                this.valueCopy.push({name:res.data.data,url:res.data.data,uid:file.uid})
+              }
       })
     },
     // 大文件分块上传
@@ -236,6 +262,15 @@ export default {
           formData.append('fileName',file.name)
           axios.post('http://core.mdgp.cn/ydisk/merge', formData).then(res=>{
             this.$emit("input", res.data.data)
+              let some = this.valueCopy.some(item=>{
+                console.log(file,"fileChunks[array[i]]fileChunks[array[i]]")
+                return item.url == res.data.data
+              })
+              if(!some || this.valueCopy.length == 0){
+                console.log(res.data,"res.data")
+                console.log(res.data.data,'yquweyutqwyuetyquwteuyqtweyutqwuyetqyuetyuqwetyuqetu')
+                this.valueCopy.push({name:res.data.data,url:res.data.data,uid:file.uid})
+              }
           })
           resolve();
         } catch (e) {
@@ -243,48 +278,48 @@ export default {
         }
       });
     },
-    againSplitUpload(file, array) {
-      console.log('file,array')
-      console.log(file)
-      console.log(array)
-      return new Promise(async (resolve, reject) => {
-        try {
-          const { eachSize , fileKeep } = this;
-          const chunks = this.chunksKeep
-          const fileChunks = this.fileChunksKeep
-          this.showProgress = true;
-          // let currentChunk = 0;
-          for (let i = 0; i < array.length; i++) {
-            // 服务端检测已经上传到第currentChunk块了，那就直接跳到第currentChunk块，实现断点续传
-            // console.log(currentChunk, i);
-            // 此时需要判断进度条
-              // 每块上传完后则返回需要提交的下一块的index
-               await this.postFile(
-                {
-                  chunked: true,
-                  chunk: array[i],
-                  chunks,
-                  fileName: file.fileName,
-                  fullSize: fileKeep.size,
-                  uid: file.uid,
-                  file: fileChunks[array[i]]
-                },
-              );
-              // currentChunk++
-              // 上传完一块后，进度条增加
-              this.progress += this.eachProgress;
-              // 不能超过100
-              this.progress = this.progress > 100 ? 100 : this.progress;
-          }
-          var spark = new SparkMD5.ArrayBuffer();
-          spark.append(fileKeep);
-          var md5 = spark.end();
-          resolve();
-        } catch (e) {
-          reject(e);
-        }
-      });
-    },
+    // againSplitUpload(file, array) {
+    //   console.log('file,array')
+    //   console.log(file)
+    //   console.log(array)
+    //   return new Promise(async (resolve, reject) => {
+    //     try {
+    //       const { eachSize , fileKeep } = this;
+    //       const chunks = this.chunksKeep
+    //       const fileChunks = this.fileChunksKeep
+    //       this.showProgress = true;
+    //       // let currentChunk = 0;
+    //       for (let i = 0; i < array.length; i++) {
+    //         // 服务端检测已经上传到第currentChunk块了，那就直接跳到第currentChunk块，实现断点续传
+    //         // console.log(currentChunk, i);
+    //         // 此时需要判断进度条
+    //           // 每块上传完后则返回需要提交的下一块的index
+    //            await this.postFile(
+    //             {
+    //               chunked: true,
+    //               chunk: array[i],
+    //               chunks,
+    //               fileName: file.fileName,
+    //               fullSize: fileKeep.size,
+    //               uid: file.uid,
+    //               file: fileChunks[array[i]]
+    //             },
+    //           );
+    //           // currentChunk++
+    //           // 上传完一块后，进度条增加
+    //           this.progress += this.eachProgress;
+    //           // 不能超过100
+    //           this.progress = this.progress > 100 ? 100 : this.progress;
+    //       }
+    //       var spark = new SparkMD5.ArrayBuffer();
+    //       spark.append(fileKeep);
+    //       var md5 = spark.end();
+    //       resolve();
+    //     } catch (e) {
+    //       reject(e);
+    //     }
+    //   });
+    // },
     // 文件分块,利用Array.prototype.slice方法
     splitFile(file, eachSize, chunks) {
       return new Promise((resolve, reject) => {

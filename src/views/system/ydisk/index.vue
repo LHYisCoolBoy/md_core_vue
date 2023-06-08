@@ -105,6 +105,13 @@
       <el-table-column label="用户" align="center" prop="userId" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
+          <a :href="scope.row.url"><el-button
+            size="mini"
+            type="text"
+            icon="el-icon-download"
+            v-hasPermi="['system:ydisk:edit']"
+            style="margin-right:10px"
+          >下载</el-button></a>
           <el-button
             size="mini"
             type="text"
@@ -138,7 +145,7 @@
           <el-input v-model="form.name" placeholder="请输入项目名" />
         </el-form-item>
         <el-form-item label="文件地址">
-          <fileUpload v-model="form.url"/>
+          <fileUpload v-model="form.url" ref="fileUpload"/>
         </el-form-item>
         <el-form-item label="上传时间
 " prop="time">
@@ -226,6 +233,7 @@ export default {
     // 取消按钮
     cancel() {
       this.open = false;
+      this.$refs.fileUpload.handleDelete()
       this.reset();
     },
     // 表单重置
@@ -261,6 +269,9 @@ export default {
       this.open = true;
       this.title = "上传新文件";
       this.form.url = ''
+      this.$nextTick(res=>{
+        this.$refs.fileUpload.valueCopy = []
+      })
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -279,12 +290,14 @@ export default {
           if (this.form.id != null) {
             updateYdisk(this.form).then(response => {
               this.msgSuccess("修改成功");
+              this.$refs.fileUpload.handleDelete()
               this.open = false;
               this.getList();
             });
           } else {
             addYdisk(this.form).then(response => {
               this.msgSuccess("上传成功");
+              this.$refs.fileUpload.handleDelete()
               this.open = false;
               this.getList();
             });
