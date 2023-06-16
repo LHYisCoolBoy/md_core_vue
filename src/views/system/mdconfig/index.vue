@@ -157,13 +157,12 @@
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="资讯分类" prop="tag">
-          <el-select v-model="form.isId" placeholder="资讯分类">
+          <el-select v-model="form.isId" placeholder="资讯分类" @change="dropDown">
             <!--1 - banner 图，2 - 专题，3 - 推荐-->
             <el-option label="模范光荣榜" value="1"/>
             <el-option label="青字号风采" value="2"/>
             <el-option label="青春光明行" value="3"/>
-            <el-option label="央企帮扶" value="4"/>
-            <el-option label="团团矩阵" value="5"/>
+            <el-option label="团团矩阵" value="4"/>
           </el-select>
         </el-form-item>
         <el-form-item label="标签" prop="tag">
@@ -190,7 +189,7 @@
         <el-form-item label="文章" prop="essayId">
           <el-select v-model="form.essayId" placeholder="请选择文章">
             <el-option
-              v-for="item in options"
+              v-for="item in dropDownoptions"
               :key="item.id"
               :label="item.name"
               :value=" parseInt(item.id)">
@@ -282,6 +281,7 @@ export default {
         ]
       },
       options: [],
+      dropDownoptions: [],//弹框文章数据
       option: [{
         value: 1,
         label: '图片'
@@ -301,6 +301,14 @@ export default {
     })
   },
   methods: {
+    dropDown(){
+      let str = {
+        icid:this.form.isId
+      }
+      optonlist(str).then(res=>{
+        this.dropDownoptions=res.data
+      })
+    },
     videoUrl(url){
       return {
         playbackRates: [0.5, 1.0, 1.5, 2.0], //播放速度
