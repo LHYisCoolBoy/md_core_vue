@@ -69,3 +69,11 @@ export function runJob(jobId, jobGroup) {
     data: data
   })
 }
+
+export function imgpost(data){
+  return request({
+    url: '/mdcms-file/upload',
+    method: 'post',
+    data:data
+  })
+}
