@@ -149,7 +149,7 @@
         </template>
       </el-table-column>
       <el-table-column label="项目周期 (天)" align="center" width="180">
-        <template slot-scope="scope">
+        <template slot-scope="scope" v-if="scope.row.endTime && scope.row.startTime">
           {{ getDiffDay(scope.row.endTime, scope.row.startTime) }}
         </template>
       </el-table-column>
@@ -214,7 +214,7 @@
         </el-form-item>
 
         <el-form-item label="参与人部门" prop="collaboratorDeptId">
-          <el-select v-model="form.collaboratorDeptId" placeholder="请选择参与人部门" @change="updateCollaboratorId">
+          <el-select v-model="form.collaboratorDeptId" placeholder="请选择参与人部门" multiple @change="updateCollaboratorId">
             <el-option
               v-for="(dept,index) in uniqueProjectsByDeptList"
               :key="index"
@@ -496,7 +496,7 @@
           </template>
         </el-table-column>
         <el-table-column label="项目周期 (天)" align="center" width="180">
-        <template slot-scope="scope">
+        <template slot-scope="scope" v-if="scope.row.endTime && scope.row.startTime">
             {{ getDiffDay(scope.row.endTime, scope.row.startTime) }}
           </template>
         </el-table-column>
@@ -736,7 +736,7 @@ export default {
       // 给协同人列表设置为空
       this.collaboratorList = [];
       // 获取当前部门下的协同人列表
-      this.editDeptId.deptId = val;
+      this.editDeptId.deptId .push(val) ;
       listProjectsByDeptId(this.editDeptId).then(res => {
         this.collaboratorList = res.data;
       });

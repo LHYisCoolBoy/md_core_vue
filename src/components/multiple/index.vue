@@ -19,7 +19,6 @@
     :http-request="checkedFile"
     :before-remove="removeFile"
     :on-exceed="handleExceed"
-    :limit="1"
     action=""
     :show-file-list="false"
     class="upload-file-uploader"
@@ -39,7 +38,7 @@
           <span class="el-icon-document"> {{ getFileName(file.name) }} </span>
         </el-link>
         <div class="ele-upload-list__item-content-action">
-          <el-link :underline="false" @click="handleDelete(index)" type="danger">删除</el-link>
+          <el-link :underline="false" @click="handleDelete(index,file)" type="danger">删除</el-link>
         </div>
       </li>
     </transition-group>
@@ -55,22 +54,10 @@ export default {
   },
   computed:{
       list() {
-      let temp = 1;
-      console.log(this.value,"this.value")
-      if (this.value) {
-        // 首先将值转为数组
-        const list = Array.isArray(this.value) ? this.value : [this.value];
-        // 然后将数组转为对象数组
-        return list.map((item) => {
-          if (typeof item === "string") {
-            item = { name: item, url: item };
-          }
-          item.uid = item.uid || new Date().getTime() + temp++;
-          return item;
-        });
-      }else{
-        if(this.valueCopy.length){
-          const list = Array.isArray(this.valueCopy) ? this.valueCopy : [this.valueCopy];
+        let temp = 1;
+        if (this.value) {
+          // 首先将值转为数组
+          const list = Array.isArray(this.value) ? this.value : [this.value];
           // 然后将数组转为对象数组
           return list.map((item) => {
             if (typeof item === "string") {
@@ -79,8 +66,20 @@ export default {
             item.uid = item.uid || new Date().getTime() + temp++;
             return item;
           });
+        }else{
+          if(this.valueCopy.length){
+            const list = Array.isArray(this.valueCopy) ? this.valueCopy : [this.valueCopy];
+            // 然后将数组转为对象数组
+            return list.map((item) => {
+              if (typeof item === "string") {
+
+                item = { name: item, url: item };
+              }
+              item.uid = item.uid || new Date().getTime() + temp++;
+              return item;
+            });
+          }
         }
-      }
     },
   },
   data() {
@@ -108,6 +107,33 @@ export default {
     console.log(this.fileChunksKeep,"fileChunksKeep")
   },
   methods: {
+    //保存文件相关处理
+    saveFile(){
+      let urlList = ''
+      if(this.value){
+        const list = Array.isArray(this.value) ? this.value : [this.value];
+        list.map((item,index) => {
+          if (typeof item === "string") {
+            item = { name: item, url: item };
+          }
+          if((list.length - 1) == index){
+            urlList += item.url
+          }else{
+            urlList += item.url + ','
+          }
+        });
+      }else if(this.valueCopy.length>0){
+        this.valueCopy.forEach((item,index)=>{
+          if((this.valueCopy.length - 1) == index){
+            urlList += item.url
+          }else{
+            urlList += item.url + ','
+          }
+        })
+      }
+      console.log(urlList,"urlList")
+      this.$emit("input", urlList)
+    },
     // 获取文件名称
     getFileName(name) {
       if (name.lastIndexOf("/") > -1) {
@@ -117,9 +143,18 @@ export default {
       }
     },
     // 删除文件
-    handleDelete(index) {
-      this.$emit("input", '');
-      this.valueCopy = [];
+    handleDelete(index,file) {
+      console.log(index,file,"weqeqeqeqwe")
+      if(index != 0 && !index){
+        return
+      }
+      if(this.valueCopy.length){
+        this.valueCopy.splice(index,1)
+      }else if(Array.isArray(this.value)){
+        this.value.splice(index,1)
+      }
+      console.log(file,"file")
+      this.saveFile()
       this.$refs.elUpload.clearFiles()
     },
     // 文件个数超出
@@ -193,16 +228,14 @@ export default {
       formData.append('guid',file.uid)
       formData.append('fileName',file.name)
       axios.post('http://core.mdgp.cn/ydisk/merge', formData).then(res=>{
-            this.$emit("input", res.data.data)
               let some = this.valueCopy.some(item=>{
                 console.log(file,"fileChunks[array[i]]fileChunks[array[i]]")
                 return item.url == res.data.data
               })
               if(!some || this.valueCopy.length == 0){
-                console.log(res.data,"res.data")
-                console.log(res.data.data,'yquweyutqwyuetyquwteuyqtweyutqwuyetqyuetyuqwetyuqetu')
                 this.valueCopy.push({name:res.data.data,url:res.data.data,uid:file.uid})
               }
+              this.saveFile()
       })
     },
     // 大文件分块上传
@@ -261,16 +294,16 @@ export default {
           formData.append('guid',file.uid)
           formData.append('fileName',file.name)
           axios.post('http://core.mdgp.cn/ydisk/merge', formData).then(res=>{
+            console.log(res.data.data,"res.data.datares.data.datares.data.data")
             this.$emit("input", res.data.data)
               let some = this.valueCopy.some(item=>{
                 console.log(file,"fileChunks[array[i]]fileChunks[array[i]]")
                 return item.url == res.data.data
               })
               if(!some || this.valueCopy.length == 0){
-                console.log(res.data,"res.data")
-                console.log(res.data.data,'yquweyutqwyuetyquwteuyqtweyutqwuyetqyuetyuqwetyuqetu')
                 this.valueCopy.push({name:res.data.data,url:res.data.data,uid:file.uid})
               }
+              this.saveFile()
           })
           resolve();
         } catch (e) {

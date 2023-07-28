@@ -105,13 +105,20 @@
       <el-table-column label="用户" align="center" prop="userId" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
-          <a :href="scope.row.url"><el-button
+          <el-button
             size="mini"
             type="text"
             icon="el-icon-download"
-            v-hasPermi="['system:ydisk:edit']"
             style="margin-right:10px"
-          >下载</el-button></a>
+            @click="down(scope.row)"
+          >下载</el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-s-promotion"
+            style="margin-right:10px"
+            @click="share(scope.row)"
+          >分享</el-button>
           <el-button
             size="mini"
             type="text"
@@ -169,6 +176,24 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+    <!-- 下载弹框 -->
+    <el-dialog title="文件下载" :visible.sync="open3" width="500px" append-to-body>
+      <transition-group class="upload-file-list el-upload-list el-upload-list--text" name="el-fade-in-linear" tag="ul">
+      <li class="el-upload-list__item ele-upload-list__item-content" v-for="(item, index) in copyDown" :key="index">
+        <el-link :href="item.toString()" :underline="false" target="_blank">
+          <span class="el-icon-document" v-html="getFileName(item.toString())"> </span>
+        </el-link>
+      </li>
+    </transition-group>
+    </el-dialog>
+    <!-- 分享弹框 -->
+    <el-dialog title="文件分享链接" :visible.sync="open4" width="600px" append-to-body>
+      <transition-group class="upload-file-list el-upload-list el-upload-list--text" name="el-fade-in-linear" tag="ul">
+      <li v-for="(item, index) in copyDown" :key="index">
+          <span>{{item}}</span>
+      </li>
+    </transition-group>
+    </el-dialog>
   </div>
 </template>
 
@@ -201,6 +226,10 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      //下载弹出层
+      open3: false,
+      //分享弹出层
+      open4: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -214,13 +243,33 @@ export default {
       form: {},
       // 表单校验
       rules: {
-      }
+      },
+      //当前下载文件数据
+      copyDown:[],
     };
   },
   created() {
     this.getList();
   },
   methods: {
+    //分享弹框
+    share(urls){
+      this.copyDown = urls.url.split(',')
+      this.open4 = true
+    },
+    //下载文件
+    down(urls){
+      this.copyDown = urls.url.split(',')
+      this.open3 = true
+    },
+    // 获取文件名称
+    getFileName(name) {
+      if (name.lastIndexOf("/") > -1) {
+        return name.slice(name.lastIndexOf("/") + 1).toLowerCase();
+      } else {
+        return "";
+      }
+    },
     /** 查询捷电网盘列表 */
     getList() {
       this.loading = true;
@@ -279,6 +328,7 @@ export default {
       const id = row.id || this.ids
       getYdisk(id).then(response => {
         this.form = response.data;
+        this.form.url = this.form.url.split(',')
         this.open = true;
         this.title = "资源详情";
       });
@@ -328,3 +378,24 @@ export default {
   }
 };
 </script>
+
+<style lang="scss" scoped>
+  .upload-file-uploader {
+  margin-bottom: 5px;
+}
+.upload-file-list .el-upload-list__item {
+  border: 1px solid #e4e7ed;
+  line-height: 2;
+  margin-bottom: 10px;
+  position: relative;
+}
+.upload-file-list .ele-upload-list__item-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: inherit;
+}
+.ele-upload-list__item-content-action .el-link {
+  margin-right: 10px;
+}
+</style>
